@@ -1,6 +1,7 @@
 'use client';
 
 import type { Medication } from '@/types';
+import { useViewMode } from '@/contexts/ViewModeContext';
 
 interface MedicationListProps {
   medications: Medication[];
@@ -9,12 +10,62 @@ interface MedicationListProps {
 }
 
 export default function MedicationList({ medications, onDelete, onEdit }: MedicationListProps) {
+  const { viewMode } = useViewMode();
+
+  if (viewMode === 'clarity') {
+    return <ClarityView medications={medications} onDelete={onDelete} onEdit={onEdit} />;
+  }
+
+  return <ClinicalView medications={medications} onDelete={onDelete} onEdit={onEdit} />;
+}
+
+// Clarity Mode: Simple, clean, minimal view
+function ClarityView({ medications, onDelete, onEdit }: MedicationListProps) {
+  return (
+    <div className="space-y-4">
+      {medications.map((med) => (
+        <div
+          key={med.id}
+          className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all hover:border-teal-300"
+        >
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {med.name}
+              </h3>
+              <p className="text-gray-600 text-lg">
+                {med.dosage} • {med.frequency}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEdit(med)}
+                className="px-4 py-2 bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold rounded-lg transition-all active:scale-95"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => onDelete(med.id)}
+                className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-semibold rounded-lg transition-all active:scale-95"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Clinical Mode: Detailed, comprehensive view with all information
+function ClinicalView({ medications, onDelete, onEdit }: MedicationListProps) {
   return (
     <div className="space-y-6">
       {medications.map((med) => (
         <div
           key={med.id}
-          className="bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl transition-all hover:border-blue-300"
+          className="bg-white rounded-2xl border border-gray-200 p-8 hover:shadow-xl transition-all hover:border-blue-400"
         >
           <div className="flex justify-between items-start gap-6">
             <div className="flex-1">
@@ -31,7 +82,7 @@ export default function MedicationList({ medications, onDelete, onEdit }: Medica
                   </span>
                 )}
                 {med.isMaintenance && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 text-sm font-semibold rounded-full border border-purple-200">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full border border-blue-200">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                     </svg>
@@ -41,13 +92,25 @@ export default function MedicationList({ medications, onDelete, onEdit }: Medica
               </div>
               <div className="space-y-3 text-gray-700">
                 <p className="flex items-center gap-2 text-lg">
-                  <span className="font-semibold text-blue-600">Dosage:</span> 
+                  <span className="font-semibold text-blue-700">Dosage:</span> 
                   <span>{med.dosage}</span>
                 </p>
                 <p className="flex items-center gap-2 text-lg">
-                  <span className="font-semibold text-blue-600">Frequency:</span> 
+                  <span className="font-semibold text-blue-700">Frequency:</span> 
                   <span>{med.frequency}</span>
                 </p>
+                {med.therapeuticClass && (
+                  <p className="flex items-center gap-2 text-lg">
+                    <span className="font-semibold text-blue-700">Class:</span> 
+                    <span>{med.therapeuticClass}</span>
+                  </p>
+                )}
+                {med.ingredients && med.ingredients.length > 0 && (
+                  <p className="flex items-start gap-2 text-lg">
+                    <span className="font-semibold text-blue-700">Ingredients:</span> 
+                    <span>{med.ingredients.join(', ')}</span>
+                  </p>
+                )}
                 {med.notes && (
                   <p className="mt-4 text-base text-gray-600 bg-gray-50 p-4 rounded-lg">
                     <span className="font-semibold text-gray-700">Notes:</span> {med.notes}
@@ -65,7 +128,7 @@ export default function MedicationList({ medications, onDelete, onEdit }: Medica
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => onEdit(med)}
-                className="px-6 py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 font-semibold rounded-xl transition-all hover:shadow-md active:scale-95"
+                className="px-6 py-3 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 font-semibold rounded-xl transition-all hover:shadow-md active:scale-95"
               >
                 Edit
               </button>

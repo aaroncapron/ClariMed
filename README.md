@@ -32,9 +32,15 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
 - ✅ **Maintenance Medication Detection** 🆕
   - Smart auto-detection based on drug class (statins, BP meds, diabetes, thyroid, etc.)
   - User can override any suggestion
-  - **Purple "Maintenance" badge** on medication cards
+  - **Navy blue "Maintenance" badge** on medication cards (in Clinical mode)
   - Helpful explanations (e.g., "Blood pressure medication - ACE inhibitor")
   - Covers: ACE inhibitors, ARBs, beta blockers, CCBs, statins, diabetes meds, anticoagulants, and more
+- ✅ **Two-Mode Toggle** 🆕 (Oct 12, 2025)
+  - **Clarity Mode** (📄 Teal): Simple, minimal view for everyday users
+  - **Clinical Mode** (📚 Navy): Detailed view with all medical information
+  - Floating toggle button (bottom-right corner)
+  - localStorage remembers your preference
+  - Auto-scroll to edit form when clicking Edit button
 - ✅ View medication list with beautiful cards
 - ✅ Delete medications with confirmation
 - ✅ localStorage persistence (survives page refresh)
@@ -47,7 +53,7 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
 - ✅ TypeScript type safety
 
 ### Up Next 🎯
-- **Two-mode toggle** (Clarity ↔ Clinical)
+- ✅ **Two-mode toggle** (Clarity ↔ Clinical) - DONE! Oct 12, 2025
 - Sort medications (by name, date added, dosage, maintenance status)
 - **DUR & Interaction Checking** (Phase 2 priority)
 - Export data (JSON/PDF)

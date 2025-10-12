@@ -1,21 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Medication } from '@/types';
 import { getMedications, addMedication, updateMedication, deleteMedication } from '@/lib/storage';
 import MedicationList from '@/components/MedicationList';
 import AddMedicationForm from '@/components/AddMedicationForm';
+import FloatingViewToggle from '@/components/FloatingViewToggle';
 
 export default function HomePage() {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Load medications on mount
   useEffect(() => {
     setMedications(getMedications());
   }, []);
+
+  // Auto-scroll to form when it opens
+  useEffect(() => {
+    if (showForm && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [showForm]);
 
   const handleAdd = (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingMed) {
@@ -131,7 +140,7 @@ export default function HomePage() {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="mb-8">
+        <div ref={formRef} className="mb-8 scroll-mt-8">
           <AddMedicationForm 
             onSubmit={handleAdd} 
             onCancel={handleCancel}
@@ -163,6 +172,9 @@ export default function HomePage() {
       )}
         </div>
       </main>
+
+      {/* Floating View Mode Toggle */}
+      <FloatingViewToggle />
     </div>
   );
 }

@@ -36,4 +36,8 @@ next-env.d.ts
 /_archive/
 
 # Personal deployment notes (private)
+DEPLOYMENT-NOTES.md
 /docs/DEPLOYMENT-NOTES.md
+
+# Session notes (work in progress, not for public repo)
+/docs/SESSION-*.md
