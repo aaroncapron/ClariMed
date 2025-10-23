@@ -1,140 +1,277 @@
-# ClariMed - Simple Medication Tracker
+# ClariMed 💊# ClariMed - Simple Medication Tracker
 
-**A clean, straightforward medication management PWA for personal use.**
 
----
 
-## 🎯 Project Vision
+**Simple, secure medication tracking with smart autocomplete and dual-mode views.****A clean, straightforward medication management PWA for personal use.**
 
-**Tagline:** "100% correct when showing info to the user. That is our priority."
 
-ClariMed helps users track medications with clarity and simplicity. No complexity, no confusion - just clear medication management.
 
----
+> "100% correct when showing info to the user. That is our priority."---
+
+
+
+---## 🎯 Project Vision
+
+
+
+## 🚀 Quick Start**Tagline:** "100% correct when showing info to the user. That is our priority."
+
+
+
+```bashClariMed helps users track medications with clarity and simplicity. No complexity, no confusion - just clear medication management.
+
+npm install          # Install dependencies
+
+npm run dev          # Start dev server (http://localhost:3000)---
+
+```
 
 ## 📋 Current Status: Authentication & Security Foundation 🔐
 
+**First time setup?** See [docs/SUPABASE-SETUP.md](docs/SUPABASE-SETUP.md) to configure authentication.
+
 **Latest:** October 23, 2025 - Setting up user accounts with Supabase!
 
+---
+
 ### What's Working (v0.5.0 - Maintenance Meds & Smart Search! 🎉)
-- ✅ Add medications (name, dosage, frequency, notes)
+
+## ✨ Current Features (v0.6.0 - October 2025)- ✅ Add medications (name, dosage, frequency, notes)
+
 - ✅ **Edit medications** - Click edit button, form prefills, update functionality
-- ✅ **Search medications** - Real-time search by name, dosage, frequency, or notes
-- ✅ **RxNav Smart Autocomplete** - Intelligent medication lookup with NIH RxNav API
-  - 🔵 Generic drug results (SCD)
-  - 🟢 Brand name results (SBD)
-  - **Hybrid search**: Falls back to `approximateTerm` API for partial matches (e.g., "lisin" finds lisinopril)
-  - **Smart sorting**: Tablets → Capsules → Liquids, Generic before Brand, Lowest to Highest dose
-  - **Brand name formatting**: "Prinivil (lisinopril) 10 MG" instead of "lisinopril 10 MG [Prinivil]"
-  - **Deduplication**: Removes duplicate packages/manufacturers, shows one per formulation
+
+### Medication Management- ✅ **Search medications** - Real-time search by name, dosage, frequency, or notes
+
+- ✅ Add, edit, delete medications with validation- ✅ **RxNav Smart Autocomplete** - Intelligent medication lookup with NIH RxNav API
+
+- ✅ Real-time search across all fields  - 🔵 Generic drug results (SCD)
+
+- ✅ Smart RxNav autocomplete with NIH database  - 🟢 Brand name results (SBD)
+
+- ✅ Maintenance medication detection  - **Hybrid search**: Falls back to `approximateTerm` API for partial matches (e.g., "lisin" finds lisinopril)
+
+- ✅ Two display modes: Clarity (simple) vs Clinical (detailed)  - **Smart sorting**: Tablets → Capsules → Liquids, Generic before Brand, Lowest to Highest dose
+
+- ✅ Verified badges for API-validated medications  - **Brand name formatting**: "Prinivil (lisinopril) 10 MG" instead of "lisinopril 10 MG [Prinivil]"
+
+- ✅ localStorage persistence  - **Deduplication**: Removes duplicate packages/manufacturers, shows one per formulation
+
   - Auto-fill dosage from drug name
-  - Stores RxCUI codes for future interaction checking
-  - **✓ Verified badge** on validated medications
-  - Fast 150ms debounce for responsive autocomplete
-- ✅ **Maintenance Medication Detection** 🆕
-  - Smart auto-detection based on drug class (statins, BP meds, diabetes, thyroid, etc.)
-  - User can override any suggestion
+
+### Authentication & Security  - Stores RxCUI codes for future interaction checking
+
+- ✅ Supabase authentication (email/password)  - **✓ Verified badge** on validated medications
+
+- ✅ User profiles with Row Level Security  - Fast 150ms debounce for responsive autocomplete
+
+- ✅ Protected routes and secure data access- ✅ **Maintenance Medication Detection** 🆕
+
+- ✅ Landing page for new users  - Smart auto-detection based on drug class (statins, BP meds, diabetes, thyroid, etc.)
+
+- ✅ Dashboard for authenticated users  - User can override any suggestion
+
   - **Navy blue "Maintenance" badge** on medication cards (in Clinical mode)
-  - Helpful explanations (e.g., "Blood pressure medication - ACE inhibitor")
+
+---  - Helpful explanations (e.g., "Blood pressure medication - ACE inhibitor")
+
   - Covers: ACE inhibitors, ARBs, beta blockers, CCBs, statins, diabetes meds, anticoagulants, and more
-- ✅ **Two-Mode Toggle** 🆕 (Oct 12, 2025)
+
+## 🗂️ Project Structure- ✅ **Two-Mode Toggle** 🆕 (Oct 12, 2025)
+
   - **Clarity Mode** (📄 Teal): Simple, minimal view for everyday users
-  - **Clinical Mode** (📚 Navy): Detailed view with all medical information
-  - Floating toggle button (bottom-right corner)
-  - localStorage remembers your preference
-  - Auto-scroll to edit form when clicking Edit button
-- ✅ View medication list with beautiful cards
-- ✅ Delete medications with confirmation
-- ✅ localStorage persistence (survives page refresh)
-- ✅ **Professional centered layout** with max-width container
-- ✅ **Clean header bar** with branding and primary action
-- ✅ **Large, obvious buttons** with hover effects
-- ✅ **Beautiful medication cards** with proper spacing and badges
-- ✅ **Clear visual hierarchy** - blue accents, proper typography
-- ✅ **Improved empty states** - icon and helpful messaging for both empty list and no search results
-- ✅ TypeScript type safety
+
+```  - **Clinical Mode** (📚 Navy): Detailed view with all medical information
+
+ClariMed/  - Floating toggle button (bottom-right corner)
+
+├── app/                      # Next.js 14 App Router  - localStorage remembers your preference
+
+│   ├── auth/                 # Authentication pages  - Auto-scroll to edit form when clicking Edit button
+
+│   ├── dashboard/            # Main medication interface- ✅ View medication list with beautiful cards
+
+│   └── landing/              # Marketing/welcome page- ✅ Delete medications with confirmation
+
+├── components/               # React components- ✅ localStorage persistence (survives page refresh)
+
+├── contexts/                 # Global state (Auth, ViewMode)- ✅ **Professional centered layout** with max-width container
+
+├── lib/                      # Utilities & API clients- ✅ **Clean header bar** with branding and primary action
+
+│   ├── supabase/            # Supabase integration- ✅ **Large, obvious buttons** with hover effects
+
+│   ├── storage.ts           # localStorage wrapper- ✅ **Beautiful medication cards** with proper spacing and badges
+
+│   └── rxnav.ts             # RxNav API client- ✅ **Clear visual hierarchy** - blue accents, proper typography
+
+├── docs/                     # Documentation- ✅ **Improved empty states** - icon and helpful messaging for both empty list and no search results
+
+└── types/                    # TypeScript definitions- ✅ TypeScript type safety
+
+```
 
 ### 🚧 In Development (Oct 23, 2025)
-- 🔐 **Authentication System** - Supabase setup for secure user accounts
+
+---- 🔐 **Authentication System** - Supabase setup for secure user accounts
+
   - Email/password authentication
-  - Row Level Security for data privacy
+
+## 🛠️ Tech Stack  - Row Level Security for data privacy
+
   - User profiles with allergies
-  - Multi-device sync
-- 🐾 **Pet Medication Tracking** - Track meds for your furry friends
-- 💰 **Prescription Savings Finder** - MySimpleRX + GoodRx integration
-- 🔔 **Message Center** - In-app notifications for reminders & refills
-- 📄 **PDF Export** - Print medication list for doctors
 
-### Up Next 🎯
+- **Framework**: Next.js 14 (App Router), React 18, TypeScript  - Multi-device sync
+
+- **Styling**: Tailwind CSS- 🐾 **Pet Medication Tracking** - Track meds for your furry friends
+
+- **Database**: Supabase (PostgreSQL + Auth + RLS)- 💰 **Prescription Savings Finder** - MySimpleRX + GoodRx integration
+
+- **APIs**: NIH RxNav for medication data- 🔔 **Message Center** - In-app notifications for reminders & refills
+
+- **Storage**: Supabase (cloud) + localStorage (legacy support)- 📄 **PDF Export** - Print medication list for doctors
+
+
+
+---### Up Next 🎯
+
 - Sort medications (by name, date added, dosage, maintenance status)
-- **DUR & Interaction Checking** (Phase 2 priority)
+
+## 📚 Documentation- **DUR & Interaction Checking** (Phase 2 priority)
+
 - OTC/Supplement tracking
-- Advanced filtering with API data
 
----
+- **[Getting Started](docs/QUICK-START.md)** - Setup & first steps- Advanced filtering with API data
 
-## 🛠️ Tech Stack
+- **[Supabase Setup](docs/SUPABASE-SETUP.md)** - Database & auth configuration
+
+- **[Features Overview](docs/FEATURES.md)** - Detailed feature documentation---
+
+- **[Security Guide](docs/SECURITY-CHECKLIST.md)** - Security best practices
+
+- **[Project Vision](docs/PROJECT-VISION.md)** - Goals & philosophy## 🛠️ Tech Stack
+
+- **[Development Progress](docs/DEVELOPMENT-PROGRESS.md)** - Current status & roadmap
 
 ### Core
-- **Next.js 14** - React framework (App Router)
+
+---- **Next.js 14** - React framework (App Router)
+
 - **React 18** - UI library
-- **TypeScript** - Type safety
+
+## 🎯 Roadmap- **TypeScript** - Type safety
+
 - **Tailwind CSS** - Styling
 
-### Database & Authentication (NEW! 🔐)
-- **Supabase** - PostgreSQL database + authentication
-- **Row Level Security** - Users can only access their own data
+**v0.6.x - Authentication & Profiles** (Current)
+
+- Improve signup/login forms (phone number support, split name fields)### Database & Authentication (NEW! 🔐)
+
+- User profile management- **Supabase** - PostgreSQL database + authentication
+
+- Allergy tracking- **Row Level Security** - Users can only access their own data
+
 - **@supabase/ssr** - Server-side rendering support
 
-### Storage
-- **Supabase PostgreSQL** - Secure cloud database (in progress)
-- **localStorage** - Legacy support (will migrate to Supabase)
+**v0.7.x - Multi-User & Sync**
 
-### Future Additions
-- PWA capabilities (service worker, offline support)
-- Push notifications (native apps)
-- Encryption for sensitive data
+- Migrate localStorage data to Supabase### Storage
+
+- Multi-device sync- **Supabase PostgreSQL** - Secure cloud database (in progress)
+
+- Pet profiles & medication tracking- **localStorage** - Legacy support (will migrate to Supabase)
+
+
+
+**v0.8.x - Cost Savings**### Future Additions
+
+- MySimpleRX integration- PWA capabilities (service worker, offline support)
+
+- Prescription coupon finder- Push notifications (native apps)
+
+- Pharmacy price comparison- Encryption for sensitive data
+
+
+
+**v0.9.x - Reminders & Notifications**---
+
+- Message center
+
+- Refill tracking## 🎨 Design Philosophy
+
+- Medication reminders
+
+### Two Modes: Clarity vs Clinical 🔄
+
+**v1.0.x - Production Release****Toggle Switch:** Always visible, smooth Tailwind animations between modes
+
+- PDF export
+
+- Interaction checking (DUR)#### 1. **Clarity Mode** (Default for most users)
+
+- PWA capabilities- **Icon**: 📋 Notepad
+
+- Mobile optimization- **Target Audience**: Patients who want essential info without overwhelm
+
+- **What's Shown**:
+
+See [DEVELOPMENT-PROGRESS.md](docs/DEVELOPMENT-PROGRESS.md) for detailed status.  - Maintenance medications (front and center)
+
+  - Drug name, dosage, frequency
+
+---  - Simple "What it's for" description
+
+  - Critical warnings only (red alerts)
+
+## 🔐 Security & Privacy  - "✓ Verified" badge
+
+- **Hidden**: Technical details, ATC codes, complex pharmacology
+
+- All user data encrypted at rest and in transit- **View All Option**: "Show all medications" button to see non-maintenance meds
+
+- Row Level Security ensures users only access their own data
+
+- No third-party data sharing#### 2. **Clinical Mode** (For healthcare workers, power users)
+
+- Users can export/delete data anytime- **Icon**: 📊 Detailed Chart
+
+- HTTPS enforced (via Vercel)- **Target Audience**: Pharmacy techs, nurses, detail-oriented users
+
+- **What's Shown**:
+
+See [SECURITY-CHECKLIST.md](docs/SECURITY-CHECKLIST.md) for complete security guide.  - ALL medications (maintenance + PRN + discontinued)
+
+  - Sorted: Most recent to oldest
+
+---  - Everything from Clarity Mode, PLUS:
+
+    - RxCUI codes
+
+## 🤝 Contributing    - Therapeutic class (e.g., "C10AA05 - HMG CoA reductase inhibitor")
+
+    - ATC classification (WHO codes)
+
+Currently a personal project. Open-sourcing considerations for future releases.    - Full indications & usage (from DailyMed API)
+
+    - Complete dosage & administration details
+
+---    - All contraindications
+
+    - Comprehensive warnings & precautions
+
+## 📄 License    - Drug interactions (all severity levels with detailed descriptions)
+
+    - Special populations (pregnancy, pediatric, geriatric, renal/hepatic)
+
+TBD - Currently private/personal use    - Active ingredients breakdown
+
+    - Links to full prescribing information
 
 ---
 
-## 🎨 Design Philosophy
-
-### Two Modes: Clarity vs Clinical 🔄
-**Toggle Switch:** Always visible, smooth Tailwind animations between modes
-
-#### 1. **Clarity Mode** (Default for most users)
-- **Icon**: 📋 Notepad
-- **Target Audience**: Patients who want essential info without overwhelm
-- **What's Shown**:
-  - Maintenance medications (front and center)
-  - Drug name, dosage, frequency
-  - Simple "What it's for" description
-  - Critical warnings only (red alerts)
-  - "✓ Verified" badge
-- **Hidden**: Technical details, ATC codes, complex pharmacology
-- **View All Option**: "Show all medications" button to see non-maintenance meds
-
-#### 2. **Clinical Mode** (For healthcare workers, power users)
-- **Icon**: 📊 Detailed Chart
-- **Target Audience**: Pharmacy techs, nurses, detail-oriented users
-- **What's Shown**:
-  - ALL medications (maintenance + PRN + discontinued)
-  - Sorted: Most recent to oldest
-  - Everything from Clarity Mode, PLUS:
-    - RxCUI codes
-    - Therapeutic class (e.g., "C10AA05 - HMG CoA reductase inhibitor")
-    - ATC classification (WHO codes)
-    - Full indications & usage (from DailyMed API)
-    - Complete dosage & administration details
-    - All contraindications
-    - Comprehensive warnings & precautions
-    - Drug interactions (all severity levels with detailed descriptions)
-    - Special populations (pregnancy, pediatric, geriatric, renal/hepatic)
-    - Active ingredients breakdown
-    - Links to full prescribing information
-
 ### Current Focus
-- Start with clean, centered layouts
+
+**Last Updated:** October 23, 2025 • **Version:** 0.6.0 • **Status:** Active Development 🚧- Start with clean, centered layouts
+
 - Clear visual hierarchy
 - Obvious interactive elements
 - Smooth transitions

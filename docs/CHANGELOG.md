@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2025-10-23
+
+### 🎉 Major Features Added
+
+#### **Supabase Authentication & Security**
+- Full authentication system with email/password
+- User signup with password strength validation
+- Login with show/hide password toggle
+- Email verification flow
+- Password reset functionality
+- Secure logout with session cleanup
+
+#### **Database & Security**
+- PostgreSQL database with Supabase
+- Row Level Security (RLS) policies - users only access their own data
+- User profiles table with allergies support
+- Medications table with user_id foreign key
+- Server-side and client-side Supabase clients
+- Cookie-based session management
+
+#### **Routing & Pages**
+- Landing page for unauthenticated users
+- Protected dashboard for authenticated users
+- Auth pages: signup, login, verify-email, reset-password
+- Auth callback route for email verification
+- Automatic redirects based on authentication state
+- Clean root router (`app/page.tsx`) handling auth logic
+
+#### **UI Components**
+- `AuthContext` for global authentication state
+- `SignupForm` component with validation
+- `LoginForm` component with toggle visibility
+- Protected route wrappers
+- Consistent auth UI styling
+
+### 🎨 UI Improvements
+- Two-mode toggle (Clarity vs Clinical) with floating button
+- Changed maintenance badge from purple to navy blue
+- Improved form validation and error messages
+- Better loading states during authentication
+
+### 📝 Documentation
+- Added `SUPABASE-SETUP.md` - Complete Supabase configuration guide
+- Added `FEATURE-AUTHENTICATION.md` - Authentication implementation details
+- Added `SECURITY-CHECKLIST.md` - Security best practices
+- Added `FEATURES.md` - Consolidated detailed feature documentation
+- Updated README.md - Concise version with v0.6.0 status
+- Updated roadmap to use industry-standard versioning
+
+### 🔧 Technical Changes
+- Added `@supabase/supabase-js` and `@supabase/ssr` dependencies
+- Created `lib/supabase/` directory structure
+- Added `database.types.ts` for TypeScript types
+- Added `auth.ts` helper functions
+- Created migration file `001_initial_schema.sql`
+- Updated `.gitignore` for Supabase files
+- Improved TypeScript type safety across auth flows
+
+---
+
 ## [0.5.0] - 2025-10-11
 
 ### 🎉 Major Features Added
@@ -124,21 +184,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## Upcoming (v0.6.0+)
+## Upcoming Features
 
-### Planned Features
-- **Two-Mode Toggle** (Clarity ↔ Clinical)
-- **Sorting Options** (name, date added, dosage, maintenance status)
-- **DUR & Interaction Checking** (using RxNav interaction API)
-- **Export Data** (JSON/PDF)
-- **Dark Mode**
+### v0.6.x - Authentication & Profiles (Current Phase)
+- Improve signup/login forms (phone number field, split name into first/last)
+- User profile management page
+- Allergy tracking and management
+- Profile settings (email change, password update)
 
-### Phase 4+ (Future)
-- Supabase authentication
-- Patient profile (allergies, conditions)
-- Multi-device sync
-- PWA offline support
+### v0.7.x - Multi-User & Sync
+- Migrate localStorage medications to Supabase
+- Real-time multi-device sync
+- Pet profiles and pet medication tracking
+- Family member profiles
+- Share medication lists with healthcare providers
+
+### v0.8.x - Cost Savings & Coupons
+- MySimpleRX API integration
+- GoodRx price comparison
+- Prescription coupon finder
+- Generic alternative suggestions
+- Pharmacy price comparison
+
+### v0.9.x - Reminders & Notifications
+- Message center for in-app notifications
+- Refill tracking and reminders
+- Medication schedule reminders
+- Push notifications (PWA)
+- Calendar integration
+
+### v1.0.x - Production Release
+- PDF export for medication lists
+- Drug interaction checking (DUR with RxNav)
+- OTC and supplement tracking
+- Advanced sorting (name, date, dosage, maintenance status)
+- Advanced filtering options
+- PWA capabilities (offline support, installable)
+- Mobile optimization and responsive design
+- Dark mode support
+
+### v1.1.x+ - Future Enhancements
 - iOS/Android native apps
+- Barcode scanning for medications
+- Medication adherence tracking
+- Integration with pharmacy systems
+- Health insurance integration
 
 ---
 
