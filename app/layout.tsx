@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ViewModeProvider } from '@/contexts/ViewModeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,11 +19,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ViewModeProvider>
-          <main className="min-h-screen bg-gray-50">
-            {children}
-          </main>
-        </ViewModeProvider>
+        <AuthProvider>
+          <ViewModeProvider>
+            <main className="min-h-screen bg-gray-50">
+              {children}
+            </main>
+          </ViewModeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

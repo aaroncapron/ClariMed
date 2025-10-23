@@ -16,6 +16,12 @@
 # Misc
 .DS_Store
 *.pem
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*.tmp
 
 # Debug
 npm-debug.log*
@@ -24,6 +30,10 @@ yarn-error.log*
 
 # Local env files
 .env*.local
+.env
+
+# Supabase local development
+.supabase/
 
 # Vercel
 .vercel

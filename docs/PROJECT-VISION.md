@@ -120,6 +120,7 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
   - Medical conditions (chronic diseases, current diagnoses)
   - Pregnancy status
   - Age/Date of Birth
+  - Preferred pharmacy location (for coupon finder)
   - Additional DUR checks:
     - Drug-allergy interactions
     - Drug-disease contraindications
@@ -135,14 +136,44 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
 - Backup/restore functionality
 - User owns their data - export anytime
 
-### Phase 5: PWA & Mobile
+### Phase 5: Prescription Coupon Finder 💰
+**"Find prescription coupons at your preferred pharmacy - like Walgreens Savings Finder, but for any pharmacy."**
+- **Coupon search & comparison**
+  - Search by medication + ZIP code
+  - Real-time pricing from multiple pharmacies
+  - Filter by preferred pharmacy (Walgreens, CVS, Walmart, etc.)
+  - Sort by price, distance, or savings
+  - Price comparison: retail vs coupon vs insurance (if available)
+- **Smart recommendations**
+  - "💰 Coupons Available" badges on medication cards
+  - Auto-search when adding new medications
+  - Show savings: dollar amount + percentage
+  - "Save $45/month by switching to Walmart"
+- **Digital coupon delivery**
+  - One-click access to coupons
+  - Digital barcode for pharmacy
+  - Printable coupons
+  - SMS/email delivery options
+- **Patient assistance**
+  - Integration with GoodRx, SingleCare, or similar
+  - NeedyMeds patient assistance programs
+  - Mail-order pharmacy options
+  - Price drop alerts for refills
+- **Privacy & compliance**
+  - ZIP code search (no GPS required)
+  - No medication data shared with third parties
+  - Anonymous coupon searches allowed
+  - HIPAA-compliant implementation
+- **Special focus:** Help uninsured/underinsured patients afford medications
+
+### Phase 6: PWA & Mobile
 - Offline support with service workers
 - Install as Progressive Web App
 - **Native iOS/Android apps** (future expansion)
 - Push notifications for medication reminders
 - Background sync
 
-### Phase 6: Polish & Accessibility
+### Phase 7: Polish & Accessibility
 - Accessibility audit (WCAG compliance)
 - Screen reader optimization
 - Keyboard navigation
