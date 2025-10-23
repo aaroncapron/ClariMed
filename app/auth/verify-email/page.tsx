@@ -25,12 +25,12 @@ export default function VerifyEmailPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Check your email</h2>
           
           <p className="text-gray-600 mb-6">
-            We've sent you a verification email. Please click the link in the email to verify your account and complete the signup process.
+            We&apos;ve sent you a verification email. Please click the link in the email to verify your account and complete the signup process.
           </p>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-700">
-              <strong>Don't see the email?</strong> Check your spam folder or wait a few minutes for it to arrive.
+              <strong>Don&apos;t see the email?</strong> Check your spam folder or wait a few minutes for it to arrive.
             </p>
           </div>
 

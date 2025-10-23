@@ -8,28 +8,45 @@
 'use client'
 
 import { useState } from 'react'
-import { signUp, validateEmail, validatePassword } from '@/lib/supabase/auth'
+import { signUp, validateEmail, validatePassword, validatePhone } from '@/lib/supabase/auth'
 import { useRouter } from 'next/navigation'
 
 export default function SignupForm() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [passwordErrors, setPasswordErrors] = useState<string[]>([])
+  const [phoneError, setPhoneError] = useState<string | null>(null)
 
   const handlePasswordChange = (value: string) => {
     setPassword(value)
     setPasswordErrors(validatePassword(value))
   }
 
+  const handlePhoneChange = (value: string) => {
+    setPhone(value)
+    // Clear error when user starts typing
+    if (phoneError) setPhoneError(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setPhoneError(null)
     setLoading(true)
+
+    // Validate required fields
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('First name and last name are required')
+      setLoading(false)
+      return
+    }
 
     // Validate email
     if (!validateEmail(email)) {
@@ -46,11 +63,25 @@ export default function SignupForm() {
       return
     }
 
+    // Validate phone if provided
+    let formattedPhone: string | undefined
+    if (phone.trim()) {
+      const phoneValidation = validatePhone(phone.trim())
+      if (!phoneValidation.valid) {
+        setPhoneError(phoneValidation.error || 'Invalid phone number')
+        setLoading(false)
+        return
+      }
+      formattedPhone = phoneValidation.formatted
+    }
+
     try {
       const { user, error: signUpError } = await signUp({
         email,
         password,
-        fullName: fullName.trim() || undefined,
+        firstName: firstName.trim() || undefined,
+        lastName: lastName.trim() || undefined,
+        phone: formattedPhone,
       })
 
       if (signUpError) {
@@ -78,19 +109,36 @@ export default function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Full Name */}
-      <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-          Full Name <span className="text-gray-400">(optional)</span>
-        </label>
-        <input
-          id="fullName"
-          type="text"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          placeholder="John Doe"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+      {/* Name Fields - Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+            First Name *
+          </label>
+          <input
+            id="firstName"
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="John"
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+            Last Name *
+          </label>
+          <input
+            id="lastName"
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Doe"
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
       </div>
 
       {/* Email */}
@@ -109,6 +157,29 @@ export default function SignupForm() {
         />
       </div>
 
+      {/* Phone Number */}
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+          Phone Number <span className="text-gray-400">(optional)</span>
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          value={phone}
+          onChange={(e) => handlePhoneChange(e.target.value)}
+          placeholder="(555) 123-4567 or +1 555 123 4567"
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            phoneError ? 'border-red-300' : 'border-gray-300'
+          }`}
+        />
+        {phoneError && (
+          <p className="mt-1 text-sm text-red-600">{phoneError}</p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">
+          US format: 10 digits, or international with +
+        </p>
+      </div>
+
       {/* Password */}
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
@@ -120,16 +191,17 @@ export default function SignupForm() {
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => handlePasswordChange(e.target.value)}
-            placeholder="••••••••"
+            placeholder="••••••••••••"
             required
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-sm"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? '🙈' : '👁️'}
+            {showPassword ? 'Hide' : 'Show'}
           </button>
         </div>
 
@@ -137,9 +209,21 @@ export default function SignupForm() {
         {password.length > 0 && (
           <div className="mt-2">
             <div className="flex gap-1 mb-2">
-              <div className={`h-1 flex-1 rounded ${passwordStrength() === 'weak' ? 'bg-red-500' : 'bg-gray-200'}`} />
-              <div className={`h-1 flex-1 rounded ${passwordStrength() === 'medium' || passwordStrength() === 'strong' ? 'bg-yellow-500' : 'bg-gray-200'}`} />
-              <div className={`h-1 flex-1 rounded ${passwordStrength() === 'strong' ? 'bg-green-500' : 'bg-gray-200'}`} />
+              <div className={`h-1 flex-1 rounded ${
+                passwordStrength() === 'weak' ? 'bg-red-500' : 
+                passwordStrength() === 'medium' ? 'bg-yellow-500' : 
+                passwordStrength() === 'strong' ? 'bg-green-500' : 
+                'bg-gray-200'
+              }`} />
+              <div className={`h-1 flex-1 rounded ${
+                passwordStrength() === 'medium' ? 'bg-yellow-500' : 
+                passwordStrength() === 'strong' ? 'bg-green-500' : 
+                'bg-gray-200'
+              }`} />
+              <div className={`h-1 flex-1 rounded ${
+                passwordStrength() === 'strong' ? 'bg-green-500' : 
+                'bg-gray-200'
+              }`} />
             </div>
             {passwordErrors.length > 0 && (
               <ul className="text-xs text-gray-600 space-y-1">

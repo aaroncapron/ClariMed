@@ -15,7 +15,10 @@ import type { User } from '@supabase/supabase-js'
 export interface SignUpData {
   email: string
   password: string
-  fullName?: string
+  firstName?: string
+  lastName?: string
+  phone?: string
+  fullName?: string // Legacy support
 }
 
 export interface SignInData {
@@ -36,15 +39,21 @@ export interface AuthResult {
 /**
  * Sign up a new user
  */
-export async function signUp({ email, password, fullName }: SignUpData): Promise<AuthResult> {
+export async function signUp({ email, password, firstName, lastName, phone, fullName }: SignUpData): Promise<AuthResult> {
   const supabase = createClient()
+
+  // Build the full name for metadata (legacy support)
+  const displayName = fullName || (firstName && lastName ? `${firstName} ${lastName}` : firstName || '')
 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        full_name: fullName,
+        full_name: displayName,
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone,
       },
       emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
@@ -61,7 +70,10 @@ export async function signUp({ email, password, fullName }: SignUpData): Promise
       .insert({
         id: data.user.id,
         email: data.user.email!,
-        full_name: fullName || null,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        phone: phone || null,
+        full_name: displayName || null, // Keep for backward compatibility
       } as any) // Type assertion needed until database is fully synced
 
     if (profileError) {
@@ -198,4 +210,30 @@ export function validatePassword(password: string): string[] {
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
+}
+
+/**
+ * Validate phone number format
+ * Accepts various formats and returns normalized E.164 format if valid
+ */
+export function validatePhone(phone: string): { valid: boolean; formatted?: string; error?: string } {
+  // Remove all non-digit characters except + at the start
+  const cleaned = phone.replace(/[^\d+]/g, '')
+  
+  // Must start with + or be 10 digits (US format)
+  if (cleaned.startsWith('+')) {
+    // International format (E.164)
+    if (cleaned.length >= 11 && cleaned.length <= 15) {
+      return { valid: true, formatted: cleaned }
+    }
+    return { valid: false, error: 'Invalid international phone number format' }
+  } else if (cleaned.length === 10) {
+    // US format without country code
+    return { valid: true, formatted: `+1${cleaned}` }
+  } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
+    // US format with leading 1
+    return { valid: true, formatted: `+${cleaned}` }
+  }
+  
+  return { valid: false, error: 'Phone must be 10 digits or start with +' }
 }

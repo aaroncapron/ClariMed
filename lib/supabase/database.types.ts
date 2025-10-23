@@ -22,7 +22,10 @@ export interface Database {
         Row: {
           id: string
           email: string
-          full_name: string | null
+          first_name: string | null
+          last_name: string | null
+          phone: string | null
+          full_name: string | null // Legacy field
           date_of_birth: string | null
           preferred_pharmacy: string | null
           preferred_pharmacy_location: Json | null
@@ -32,6 +35,9 @@ export interface Database {
         Insert: {
           id: string
           email: string
+          first_name?: string | null
+          last_name?: string | null
+          phone?: string | null
           full_name?: string | null
           date_of_birth?: string | null
           preferred_pharmacy?: string | null
@@ -42,6 +48,9 @@ export interface Database {
         Update: {
           id?: string
           email?: string
+          first_name?: string | null
+          last_name?: string | null
+          phone?: string | null
           full_name?: string | null
           date_of_birth?: string | null
           preferred_pharmacy?: string | null
