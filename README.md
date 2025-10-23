@@ -12,7 +12,9 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
 
 ---
 
-## 📋 Current Status: Phase 2 In Progress 🚀
+## 📋 Current Status: Authentication & Security Foundation 🔐
+
+**Latest:** October 23, 2025 - Setting up user accounts with Supabase!
 
 ### What's Working (v0.5.0 - Maintenance Meds & Smart Search! 🎉)
 - ✅ Add medications (name, dosage, frequency, notes)
@@ -52,11 +54,21 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
 - ✅ **Improved empty states** - icon and helpful messaging for both empty list and no search results
 - ✅ TypeScript type safety
 
+### 🚧 In Development (Oct 23, 2025)
+- 🔐 **Authentication System** - Supabase setup for secure user accounts
+  - Email/password authentication
+  - Row Level Security for data privacy
+  - User profiles with allergies
+  - Multi-device sync
+- 🐾 **Pet Medication Tracking** - Track meds for your furry friends
+- 💰 **Prescription Savings Finder** - MySimpleRX + GoodRx integration
+- 🔔 **Message Center** - In-app notifications for reminders & refills
+- 📄 **PDF Export** - Print medication list for doctors
+
 ### Up Next 🎯
-- ✅ **Two-mode toggle** (Clarity ↔ Clinical) - DONE! Oct 12, 2025
 - Sort medications (by name, date added, dosage, maintenance status)
 - **DUR & Interaction Checking** (Phase 2 priority)
-- Export data (JSON/PDF)
+- OTC/Supplement tracking
 - Advanced filtering with API data
 
 ---
@@ -69,14 +81,19 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
 
-### Storage (Current)
-- **localStorage** - Simple JSON storage (no encryption yet)
+### Database & Authentication (NEW! 🔐)
+- **Supabase** - PostgreSQL database + authentication
+- **Row Level Security** - Users can only access their own data
+- **@supabase/ssr** - Server-side rendering support
+
+### Storage
+- **Supabase PostgreSQL** - Secure cloud database (in progress)
+- **localStorage** - Legacy support (will migrate to Supabase)
 
 ### Future Additions
 - PWA capabilities (service worker, offline support)
-- IndexedDB for larger datasets
+- Push notifications (native apps)
 - Encryption for sensitive data
-- State management (only if needed)
 
 ---
 
@@ -242,6 +259,7 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
   - Medical conditions (chronic diseases, current diagnoses)
   - Pregnancy status
   - Age/Date of Birth
+  - Preferred pharmacy location (for coupon finder)
   - Additional DUR checks:
     - Drug-allergy interactions
     - Drug-disease contraindications
@@ -257,7 +275,20 @@ ClariMed helps users track medications with clarity and simplicity. No complexit
 - Backup/restore functionality
 - User owns their data - export anytime
 
-### Phase 5: PWA & Mobile
+### Phase 5: Prescription Coupon Finder 💰
+**"Find prescription coupons at your preferred pharmacy - helping patients afford their medications."**
+- Search for prescription discount coupons by medication and location
+- Compare prices across multiple pharmacies (Walgreens, CVS, Walmart, etc.)
+- Filter by preferred pharmacy or closest location
+- Show savings comparison: retail price vs. coupon price vs. insurance co-pay
+- Digital coupon delivery (barcode, printable, SMS)
+- Integration with GoodRx, SingleCare, or similar coupon providers
+- Patient assistance program links (NeedyMeds)
+- **Perfect for:** Patients with inadequate insurance or no insurance
+- Price drop alerts for refill reminders
+- Multi-medication total savings calculator
+
+### Phase 6: PWA & Mobile
 - Offline support with service workers
 - Install as Progressive Web App
 - **Native iOS/Android apps** (future expansion)
