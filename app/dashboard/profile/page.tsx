@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import AllergyList from '@/components/AllergyList'
 
 interface UserProfile {
   first_name?: string
@@ -249,6 +250,11 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Allergy Management */}
+        <div className="mt-8">
+          <AllergyList />
         </div>
       </main>
     </div>

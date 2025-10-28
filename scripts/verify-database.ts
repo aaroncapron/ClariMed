@@ -19,7 +19,7 @@ async function verifyDatabase() {
   ]
 
   const requiredColumns = {
-    user_profiles: ['id', 'email', 'first_name', 'last_name', 'phone', 'full_name', 'created_at', 'updated_at'],
+    user_profiles: ['id', 'email', 'first_name', 'last_name', 'phone', 'created_at', 'updated_at'],
     allergies: ['id', 'user_id', 'allergen', 'rxcui', 'severity', 'reaction', 'created_at', 'updated_at'],
     medications: ['id', 'user_id', 'name', 'dosage', 'frequency', 'notes', 'rxcui', 'verified', 'is_maintenance', 'created_at', 'updated_at']
   }

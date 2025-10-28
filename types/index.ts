@@ -26,3 +26,23 @@ export interface MedicationFormData {
   frequency: string;
   notes?: string;
 }
+
+export type AllergySeverity = 'mild' | 'moderate' | 'severe' | 'anaphylaxis';
+
+export interface Allergy {
+  id: string; // UUID
+  user_id: string; // Foreign key to auth.users
+  allergen: string; // Name of allergen (e.g., "Penicillin", "Sulfa drugs")
+  rxcui?: string; // RxNorm Concept Unique Identifier (if medication)
+  severity: AllergySeverity; // Severity level
+  reaction?: string; // Description of reaction (e.g., "Hives", "Difficulty breathing")
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+}
+
+export interface AllergyFormData {
+  allergen: string;
+  rxcui?: string;
+  severity: AllergySeverity;
+  reaction?: string;
+}

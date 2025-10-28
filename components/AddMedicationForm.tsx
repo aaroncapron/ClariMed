@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { Medication } from '@/types';
 import { searchDrugs, parseDosage, parseForm, type DrugSearchResult } from '@/lib/rxnav';
 import { isLikelyMaintenanceMed, getMaintenanceReason } from '@/lib/maintenance';
+import { checkAllergyConflicts, getAllergies } from '@/lib/allergies';
 
 interface AddMedicationFormProps {
   onSubmit: (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -27,6 +28,10 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   const [maintenanceReason, setMaintenanceReason] = useState<string | null>(null);
   const [justSelected, setJustSelected] = useState(false); // Track if user just selected from dropdown
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Allergy warning state
+  const [allergyWarning, setAllergyWarning] = useState<string | null>(null);
+  const [isCheckingAllergies, setIsCheckingAllergies] = useState(false);
 
   // Debounced search effect
   useEffect(() => {
@@ -86,6 +91,31 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     // Get explanation for why it's suggested
     const reason = getMaintenanceReason(medicationName);
     setMaintenanceReason(reason);
+    
+    // Check for allergy conflicts
+    checkForAllergyConflicts(medicationName);
+  };
+  
+  // Check for allergy conflicts
+  const checkForAllergyConflicts = async (medicationName: string) => {
+    try {
+      setIsCheckingAllergies(true);
+      setAllergyWarning(null);
+      
+      // Fetch user's allergies
+      const allergies = await getAllergies();
+      const conflicts = checkAllergyConflicts(medicationName, allergies);
+      
+      if (conflicts.length > 0) {
+        const allergyNames = conflicts.map(a => a.allergen).join(', ');
+        const warningText = `This medication may conflict with your allergies: ${allergyNames}`;
+        setAllergyWarning(warningText);
+      }
+    } catch (err) {
+      console.error('Error checking allergies:', err);
+    } finally {
+      setIsCheckingAllergies(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -174,6 +204,22 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
             </div>
           )}
         </div>
+
+        {/* Allergy Warning */}
+        {allergyWarning && (
+          <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <h4 className="font-bold text-red-900 mb-1">Allergy Alert</h4>
+                <p className="text-red-800">{allergyWarning}</p>
+                <p className="text-sm text-red-700 mt-2">
+                  Please consult with your healthcare provider before taking this medication.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Dosage */}
         <div>

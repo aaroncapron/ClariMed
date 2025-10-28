@@ -42,15 +42,11 @@ export interface AuthResult {
 export async function signUp({ email, password, firstName, lastName, phone, fullName }: SignUpData): Promise<AuthResult> {
   const supabase = createClient()
 
-  // Build the full name for metadata (legacy support)
-  const displayName = fullName || (firstName && lastName ? `${firstName} ${lastName}` : firstName || '')
-
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        full_name: displayName,
         first_name: firstName,
         last_name: lastName,
         phone: phone,
@@ -73,7 +69,6 @@ export async function signUp({ email, password, firstName, lastName, phone, full
         first_name: firstName || null,
         last_name: lastName || null,
         phone: phone || null,
-        full_name: displayName || null, // Keep for backward compatibility
       } as any) // Type assertion needed until database is fully synced
 
     if (profileError) {

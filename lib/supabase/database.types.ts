@@ -25,7 +25,6 @@ export interface Database {
           first_name: string | null
           last_name: string | null
           phone: string | null
-          full_name: string | null // Legacy field
           date_of_birth: string | null
           preferred_pharmacy: string | null
           preferred_pharmacy_location: Json | null
@@ -38,7 +37,6 @@ export interface Database {
           first_name?: string | null
           last_name?: string | null
           phone?: string | null
-          full_name?: string | null
           date_of_birth?: string | null
           preferred_pharmacy?: string | null
           preferred_pharmacy_location?: Json | null
@@ -51,7 +49,6 @@ export interface Database {
           first_name?: string | null
           last_name?: string | null
           phone?: string | null
-          full_name?: string | null
           date_of_birth?: string | null
           preferred_pharmacy?: string | null
           preferred_pharmacy_location?: Json | null
