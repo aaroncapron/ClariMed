@@ -4,10 +4,17 @@
  * User authentication page
  */
 
+'use client'
+
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import LoginForm from '@/components/auth/LoginForm'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
+function LoginContent() {
+  const searchParams = useSearchParams()
+  const resetSuccess = searchParams.get('reset') === 'success'
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -16,6 +23,16 @@ export default function LoginPage() {
           <h1 className="text-4xl font-bold text-blue-600 mb-2">ClariMed</h1>
           <p className="text-gray-600">Welcome back!</p>
         </div>
+
+        {/* Success Message */}
+        {resetSuccess && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-700 flex items-center gap-2">
+              <span className="text-lg">✓</span>
+              Password updated successfully! You can now log in with your new password.
+            </p>
+          </div>
+        )}
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -43,5 +60,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

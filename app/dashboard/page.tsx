@@ -7,11 +7,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import type { Medication } from '@/types';
-import { getMedications, addMedication, updateMedication, deleteMedication } from '@/lib/storage';
+import { getMedications, addMedication, updateMedication, deleteMedication, checkMigrationNeeded } from '@/lib/storage';
 import MedicationList from '@/components/MedicationList';
 import AddMedicationForm from '@/components/AddMedicationForm';
 import FloatingViewToggle from '@/components/FloatingViewToggle';
+import MigrationBanner from '@/components/MigrationBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -22,6 +24,8 @@ export default function DashboardPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showMigration, setShowMigration] = useState(false);
+  const [migrationCount, setMigrationCount] = useState(0);
   const formRef = useRef<HTMLDivElement>(null);
 
   // Redirect if not logged in
@@ -33,8 +37,27 @@ export default function DashboardPage() {
 
   // Load medications on mount
   useEffect(() => {
-    setMedications(getMedications());
+    async function loadMedications() {
+      const meds = await getMedications();
+      setMedications(meds);
+    }
+    loadMedications();
   }, []);
+
+  // Check if migration is needed
+  useEffect(() => {
+    async function checkMigration() {
+      if (!user) return;
+
+      const { needed, count } = await checkMigrationNeeded(user.id);
+      setShowMigration(needed);
+      setMigrationCount(count);
+    }
+    
+    if (user) {
+      checkMigration();
+    }
+  }, [user]);
 
   // Auto-scroll to form when it opens
   useEffect(() => {
@@ -43,16 +66,17 @@ export default function DashboardPage() {
     }
   }, [showForm]);
 
-  const handleAdd = (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleAdd = async (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingMed) {
       // Update existing medication
-      updateMedication(editingMed.id, data);
+      await updateMedication(editingMed.id, data);
       setEditingMed(null);
     } else {
       // Add new medication
-      addMedication(data);
+      await addMedication(data);
     }
-    setMedications(getMedications());
+    const meds = await getMedications();
+    setMedications(meds);
     setShowForm(false);
   };
 
@@ -77,10 +101,11 @@ export default function DashboardPage() {
     );
   });
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Delete this medication?')) {
-      deleteMedication(id);
-      setMedications(getMedications());
+      await deleteMedication(id);
+      const meds = await getMedications();
+      setMedications(meds);
     }
   };
 
@@ -123,6 +148,15 @@ export default function DashboardPage() {
               >
                 {showForm ? '✕ Cancel' : (editingMed ? 'Edit Medication' : '+ Add Medication')}
               </button>
+              <Link
+                href="/dashboard/profile"
+                className="text-gray-600 hover:text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100 transition flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Profile
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="text-gray-600 hover:text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
@@ -137,6 +171,20 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="flex-1 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6 py-8">
+
+      {/* Migration Banner */}
+      {showMigration && user && (
+        <MigrationBanner
+          userId={user.id}
+          medicationCount={migrationCount}
+          onComplete={async () => {
+            setShowMigration(false);
+            // Reload medications after migration
+            const meds = await getMedications();
+            setMedications(meds);
+          }}
+        />
+      )}
 
       {/* Search Bar */}
       {!showForm && medications.length > 0 && (

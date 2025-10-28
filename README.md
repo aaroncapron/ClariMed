@@ -74,4 +74,4 @@ TBD - Currently private/personal use
 
 ---
 
-**Built with  for medication clarity**
+**Built for medication clarity**
