@@ -96,7 +96,7 @@ function ClinicalView({ medications, onDelete, onEdit }: MedicationListProps) {
                   <span>{med.dosage}</span>
                 </p>
                 <p className="flex items-center gap-2 text-lg">
-                  <span className="font-semibold text-blue-700">Frequency:</span> 
+                  <span className="font-semibold text-blue-700">Directions:</span> 
                   <span>{med.frequency}</span>
                 </p>
                 {med.therapeuticClass && (

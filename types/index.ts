@@ -9,7 +9,7 @@ export interface Medication {
   id: string; // Simple UUID
   name: string; // e.g., "Lisinopril 10mg"
   dosage: string; // e.g., "10mg"
-  frequency: string; // e.g., "Once daily"
+  frequency: string; // Directions for use (e.g., "Take 1 tablet by mouth once daily", "Split tablet in half, take twice weekly")
   notes?: string; // Optional notes
   rxcui?: string; // RxNorm Concept Unique Identifier (from RxNav API)
   verified?: boolean; // Whether medication was validated via RxNav

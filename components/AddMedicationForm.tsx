@@ -25,10 +25,16 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRxcui, setSelectedRxcui] = useState<string | undefined>(initialData?.rxcui);
   const [maintenanceReason, setMaintenanceReason] = useState<string | null>(null);
+  const [justSelected, setJustSelected] = useState(false); // Track if user just selected from dropdown
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Debounced search effect
   useEffect(() => {
+    // Don't show dropdown if user just selected something
+    if (justSelected) {
+      return;
+    }
+
     const timer = setTimeout(async () => {
       if (name.length >= 2 && !isEditing) { // Don't autocomplete when editing
         setIsLoading(true);
@@ -44,7 +50,7 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     }, 150); // Reduced from 300ms to 150ms for faster response
 
     return () => clearTimeout(timer);
-  }, [name, isEditing]);
+  }, [name, isEditing, justSelected]);
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -64,6 +70,7 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     setName(medicationName);
     setSelectedRxcui(drug.rxcui);
     setShowDropdown(false);
+    setJustSelected(true); // Mark that user just selected - prevents dropdown from reopening
     
     // Auto-fill dosage if we can parse it
     const extractedDosage = parseDosage(drug.name); // Use original name for parsing
@@ -128,6 +135,7 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
             onChange={(e) => {
               setName(e.target.value);
               setSelectedRxcui(undefined); // Clear verification if user types manually
+              setJustSelected(false); // User is typing again, allow dropdown to show
             }}
             placeholder="e.g., Lisinopril"
             className="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -183,20 +191,23 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
           />
         </div>
 
-        {/* Frequency */}
+        {/* Directions (formerly Frequency) */}
         <div>
           <label htmlFor="frequency" className="block text-base font-semibold text-gray-700 mb-2">
-            Frequency *
+            Directions *
           </label>
           <input
             type="text"
             id="frequency"
             value={frequency}
             onChange={(e) => setFrequency(e.target.value)}
-            placeholder="e.g., Once daily"
+            placeholder="e.g., Take 1 tablet by mouth once daily"
             className="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             required
           />
+          <p className="text-sm text-gray-500 mt-1">
+            How to take this medication (e.g., "Take 2 capsules weekly" or "Split tablet in half, take with food")
+          </p>
         </div>
 
         {/* Maintenance Medication Checkbox */}
