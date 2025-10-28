@@ -1,52 +1,86 @@
 # 📊 ClariMed Feature Development Progress
 
-**Last Updated:** October 23, 2025  
-**Current Phase:** Authentication & Security Foundation
+**Last Updated:** October 28, 2025  
+**Current Phase:** User Profiles & Allergy Tracking (v0.7.x)
 
 ---
 
 ## 🎯 Development Roadmap
 
-### ✅ **Phase 1: Foundation & Security** (IN PROGRESS)
-1. ✅ **Authentication System Setup**
+### ✅ **Phase 1: Foundation & Security** (COMPLETE - v0.6.x)
+1. ✅ **Authentication System** (v0.6.0)
    - Supabase client libraries installed
-   - Database schema created (SQL migration ready)
+   - Database schema created and migrated
    - TypeScript types defined
-   - Auth helper functions created (to be recreated after review)
+   - Auth helper functions implemented
    - AuthContext provider created
-   - Environment configuration ready
-   - **Security audit completed**
-   - `.gitignore` updated with additional protections
-   - SMTP production requirements documented
+   - Sign up, login, email verification flows
+   - Password reset and update flows
+   - Protected routes with auth guards
+   - Row Level Security (RLS) enabled
    
-   **Status:** Ready for Supabase project creation
-   **Next:** Follow `docs/SUPABASE-SETUP.md` to create your project, then build signup/login UI
+2. ✅ **Data Migration System** (v0.6.1)
+   - localStorage to Supabase migration
+   - Migration banner component
+   - Unified storage layer (auto-routing)
+   - Migration tracking in database
+   - User choice: import or skip
+   - Prevent duplicate migrations
+   
+3. ✅ **User Profile Management** (v0.6.1)
+   - Profile settings page
+   - First name, last name, phone editing
+   - Profile update persistence
+   - Link to password reset
+   
+   **Status:** ✅ Complete
+   **Next:** Allergy tracking feature
 
-2. ⏳ **Multi-device Sync** (NEXT)
-3. ⏳ **User Profile with Allergy List** (NEXT)
+### 🔄 **Phase 2: User Profiles & Allergies** (IN PROGRESS - v0.7.x)
+4. ⏳ **Allergy Tracking** (NEXT)
+   - Add allergy management UI
+   - Search allergies via RxNav
+   - Severity levels (mild, moderate, severe)
+   - Reaction descriptions
+   - Allergy warnings on medication add
 
-### 📋 **Phase 2: Pet Medication Tracking**
-4. ⏳ Pet Profile Management
-5. ⏳ Pet Medication Tracking
-6. ⏳ Pet-specific RxNorm lookup
+### � **Phase 3: Prescription Savings Coupons** (v0.8.x)
+5. ⏳ **GoodRx Integration**
+   - Search GoodRx prices by medication + dosage
+   - Display coupon codes and prices
+   - Compare prices across pharmacies
+   - Deep links to GoodRx app/website
+   
+6. ⏳ **Additional Coupon Services**
+   - SingleCare integration
+   - RxSaver integration
+   - Blink Health integration
+   
+7. ⏳ **MySimpleRX Built-in Card**
+   - Hardcoded discount card (BIN: 023914, PCN: 5555, Group: SIMPLE)
+   - Display card details for cash payments
+   - Educational info about insurance alternatives
 
-### 💰 **Phase 3: Cost Savings**
-7. ⏳ MySimpleRX Hardcoded Integration
-8. ⏳ GoodRx API Integration
-9. ⏳ Pet Medication Discounts
+**Real-World Use Case:**  
+When patients run out early and insurance won't cover until the refill date, pharmacy techs offer GoodRx/SingleCare coupons to lower cash prices. ClariMed will show these options automatically so patients can compare and choose the best price.
 
-### 🔔 **Phase 4: Reminders & Notifications**
-10. ⏳ Message Center Component
-11. ⏳ Medication Reminders
-12. ⏳ Refill Tracking & Alerts
+### 📋 **Phase 4: Pet Medication Tracking** (v0.9.x)
+8. ⏳ Pet Profile Management
+9. ⏳ Pet Medication Tracking
+10. ⏳ Pet-specific RxNorm lookup
 
-### 📄 **Phase 5: Export & Sharing**
-13. ⏳ PDF Export
-14. ⏳ Emergency Card Generator
+### 🔔 **Phase 5: Reminders & Notifications** (v1.0.x)
+11. ⏳ Message Center Component
+12. ⏳ Medication Reminders
+13. ⏳ Refill Tracking & Alerts
 
-### 💊 **Phase 6: OTC/Supplement Tracking**
-15. ⏳ OTC Medication Category
-16. ⏳ Expiration Date Tracking
+### 📄 **Phase 6: Export & Sharing** (v1.1.x)
+14. ⏳ PDF Export
+15. ⏳ Emergency Card Generator
+
+### 💊 **Phase 7: OTC/Supplement Tracking** (v1.2.x)
+16. ⏳ OTC Medication Category
+17. ⏳ Expiration Date Tracking
 
 ---
 

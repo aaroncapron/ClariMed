@@ -58,11 +58,12 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Roadmap
 
-**v0.6.x** - User profiles and allergy tracking  
-**v0.7.x** - Multi-device sync and pet profiles  
-**v0.8.x** - Prescription coupon finder  
-**v0.9.x** - Medication reminders and notifications  
-**v1.0.x** - Production release with PWA support
+**v0.6.x** ✅ - Authentication and data migration (COMPLETE)  
+**v0.7.x** 🔄 - User profiles and allergy tracking (IN PROGRESS)  
+**v0.8.x** - Prescription savings coupons (GoodRx, SingleCare, MySimpleRX)  
+**v0.9.x** - Multi-device sync and pet profiles  
+**v1.0.x** - Medication reminders and notifications  
+**v1.1.x** - Production release with PWA support
 
 See [DEVELOPMENT-PROGRESS.md](docs/DEVELOPMENT-PROGRESS.md) for details.
 

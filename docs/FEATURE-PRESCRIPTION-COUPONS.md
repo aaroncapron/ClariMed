@@ -1,9 +1,9 @@
 # 💰 Feature: Prescription Coupon Finder
 
-**Status:** 📋 Planned (Future Phase)  
-**Priority:** High - Patient Value Feature  
+**Status:** 📋 Planned for v0.8.x  
+**Priority:** High - Real pharmacy pain point (from field experience)  
 **Complexity:** Medium-High  
-**Last Updated:** October 14, 2025
+**Last Updated:** October 28, 2025
 
 ---
 
@@ -21,11 +21,12 @@ Enable patients to find and compare prescription discount coupons across multipl
 ## 💡 Core Concept
 
 ### The Problem
-- Patients often don't know discount coupons exist for their medications
-- Different pharmacies have different prices for the same medication
-- Insurance co-pays are sometimes higher than discount coupon prices
-- Finding coupons manually is time-consuming and confusing
-- Patients may not know which pharmacy offers the best price
+- **Early Refill Scenarios:** Patients run out of medication early, but insurance refuses to cover until the original refill date (or a few days before)
+- **Cash Price Shock:** Without insurance, retail prices can be $50-200+ for common medications
+- **Manual Process:** Pharmacy techs manually search GoodRx/SingleCare for every patient - time-consuming for staff
+- **Patient Awareness:** Many patients don't know discount coupons exist or where to find them
+- **Price Variation:** Different pharmacies have wildly different prices for the same medication
+- **Insurance Comparison:** Sometimes coupon prices are cheaper than insurance co-pays
 
 ### The Solution
 ClariMed integrates coupon finding directly into the medication management workflow:
@@ -482,7 +483,56 @@ interface PharmacySettings {
 
 ---
 
-## 📚 Resources & References
+## 🤝 Pharmacy Tech Insights (From Aaron)
+
+> **The Real Problem:** "In the pharmacy setting, I've noticed a lot of times where people run out of medicine early and their insurance doesn't want to cover until the original date or normally a few days before they are supposed to run out of the medicine. In these types of cases, pharm techs like me offer GoodRx and other prescription savings coupons to lower the cash price if they would like to purchase the medicine without going through insurance."
+
+### Why This Happens:
+1. **Timing Issues:** Vacation, travel, lost medication, or miscounted pills
+2. **Insurance Policies:** "Too soon" errors from insurance, rigid refill windows
+3. **Prior Authorization Delays:** Doctor approval pending, can't wait
+4. **Change in Dosage:** Doctor increased dose, now running out faster
+5. **Urgent Need:** Can't afford to wait 3-5 days for insurance approval
+
+### Current Workflow (Manual):
+1. Patient arrives at pharmacy needing medication
+2. Insurance rejects as "too soon to fill"
+3. Pharmacy tech checks GoodRx website manually
+4. Shows patient the coupon price options
+5. Patient decides: wait for insurance OR pay cash with coupon
+6. If cash: tech processes with coupon code
+
+### ClariMed's Solution:
+**Proactive instead of reactive** - patients see coupon options BEFORE they're at the pharmacy counter, so they:
+- Know their options in advance
+- Can plan financially
+- Choose the best pharmacy before leaving home
+- Avoid the stress of last-minute decisions
+- Save pharmacy staff time
+
+---
+
+## � Real-World Impact Examples
+
+### Example 1: Lisinopril (Blood Pressure)
+- **Retail Price:** $87 for 30 tablets
+- **GoodRx Price:** $9-12 at most pharmacies
+- **Savings:** $75+ (86% off)
+- **Patient Impact:** "I can actually afford to not skip doses now"
+
+### Example 2: Metformin (Diabetes)
+- **Retail Price:** $45 for 60 tablets
+- **SingleCare Price:** $4-8 at Walmart/Sam's Club
+- **Savings:** $37+ (82% off)
+- **Patient Impact:** "This is cheaper than my insurance co-pay!"
+
+### Example 3: Sertraline (Antidepressant)
+- **Retail Price:** $120 for 30 tablets
+- **GoodRx Price:** $15-20 at most pharmacies
+- **Savings:** $100+ (83% off)
+- **Patient Impact:** "I was rationing my pills before - not anymore"
+
+---
 
 ### Coupon Providers
 - **GoodRx:** https://www.goodrx.com/
