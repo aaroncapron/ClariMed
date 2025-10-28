@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.1] - 2025-10-28
+
+### Added
+
+**Data Migration System**
+- Automatic localStorage to Supabase migration for authenticated users
+- Migration banner with "Import" and "Skip" options that appears once
+- Preserves all medication data including name, dosage, directions, notes, verified status, and RxCUI codes
+- Migration status tracking in database prevents repeat prompts
+- Row Level Security ensures users only see their own migration data
+
+**User Profile Management**
+- Profile settings page at `/dashboard/profile`
+- Edit name, phone number, and allergies
+- Real-time form validation with success/error feedback
+- Server-side data updates with RLS protection
+
+**Password Management**
+- Password reset flow (request link from login page)
+- Password update page for authenticated users
+- Password strength validation
+- Secure email-based verification
+
+### Fixed
+- Dropdown no longer reopens after selecting medication from autocomplete (added `justSelected` state tracking)
+- Improved medication form UX flow
+
+### Changed
+- Renamed "Frequency" field to "Directions" throughout the app for pharmacy accuracy
+- Updated placeholder text with better examples: "Take 1 tablet daily", "Take half a tablet weekly"
+- Field labels now match real prescription directions terminology
+
+### Documentation
+- Added `testing/MIGRATION-TESTING-GUIDE.md` with 10 comprehensive test scenarios
+- Added console paste bypass instructions for testing
+- Updated roadmap with prescription coupon feature (v0.8.x)
+- Added real-world pharmacy insights to `FEATURE-PRESCRIPTION-COUPONS.md`
+- Updated `SESSION-AUTH-COMPLETE.md` with migration system details
+- Organized test documentation into `docs/testing/` directory
+
+### Technical
+- Added `migrations` table to track user migration status
+- Created migration SQL: `003_add_migration_tracking.sql`
+- Enhanced storage API to handle guest vs authenticated routing
+- Added `justSelected` boolean flag to prevent search effect race conditions
+- Updated TypeScript types and documentation for `frequency` field
+
+---
+
 ## [0.6.0] - 2025-10-23
 
 ### 🎉 Major Features Added

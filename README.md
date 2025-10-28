@@ -2,7 +2,7 @@
 
 Simple, secure medication tracking with smart autocomplete and verification.
 
-[![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)](https://github.com/aaroncapron/ClariMed)
+[![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)](https://github.com/aaroncapron/ClariMed)
 [![License](https://img.shields.io/badge/license-TBD-lightgrey.svg)](LICENSE)
 
 ---
@@ -49,10 +49,19 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Documentation
 
-- [Features Overview](docs/FEATURES.md)
-- [Supabase Setup Guide](docs/SUPABASE-SETUP.md)
-- [Security Checklist](docs/SECURITY-CHECKLIST.md)
-- [Development Progress](docs/DEVELOPMENT-PROGRESS.md)
+**[Complete Documentation](docs/)** - Full documentation index
+
+### Quick Links
+- [Features Overview](docs/FEATURES.md) - What ClariMed can do
+- [Quick Start Guide](docs/guides/QUICK-START.md) - Get up and running
+- [Supabase Setup](docs/guides/SUPABASE-SETUP.md) - Database configuration
+- [Development Progress](docs/DEVELOPMENT-PROGRESS.md) - Current roadmap
+- [Security Checklist](docs/SECURITY-CHECKLIST.md) - Security best practices
+
+### Documentation Categories
+- **[Guides](docs/guides/)** - Setup instructions and API documentation
+- **[Features](docs/features/)** - Detailed feature specifications
+- **[Testing](docs/testing/)** - Test checklists and procedures
 
 ---
 
