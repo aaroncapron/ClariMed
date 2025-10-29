@@ -1,4 +1,4 @@
-# 🚀 ClariMed Development Quick Start
+# ClariMed Development Quick Start
 
 **Status:** Documentation complete ✅ | Security verified ✅ | Ready for UI development ✅
 
@@ -50,13 +50,13 @@ git diff --staged        # Review changes before commit
 | Environment | Email Service | Action Required |
 |-------------|---------------|-----------------|
 | **Development** | Supabase native | ✅ None - works now |
-| **Production** | Custom SMTP | ⚠️ Must configure |
+| **Production** | Custom SMTP | Must configure |
 
 **Production SMTP:** Supabase Dashboard → Authentication → SMTP Settings
 
 ---
 
-## 🎯 Next Steps
+## Next Steps
 
 ### Option A: Set Up Supabase (Recommended First)
 1. Go to https://supabase.com
@@ -86,7 +86,7 @@ Say: **"Let's build the signup/login UI"**
 
 ---
 
-## ⚠️ Production Checklist
+## Production Checklist
 
 **MUST DO before launching:**
 - [ ] Configure custom SMTP
@@ -123,4 +123,4 @@ Say: **"Let's build the signup/login UI"**
 
 ---
 
-**Ready to proceed! Choose your path and let's keep building! 🚀**
+**Ready to proceed! Choose your path and let's keep building!**

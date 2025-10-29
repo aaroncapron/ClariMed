@@ -4,7 +4,7 @@
 
 ---
 
-## 📚 Medical Terms
+## Medical Terms
 
 ### **Generic Drug**
 The basic, non-brand name version of a medication. Usually cheaper.
@@ -55,7 +55,7 @@ When two medications affect each other, sometimes causing problems.
 
 ---
 
-## 💊 Medication Types Explained
+## Medication Types Explained
 
 ### **ACE Inhibitor**
 A type of blood pressure medication.
@@ -94,7 +94,7 @@ Cholesterol-lowering medication.
 
 ---
 
-## 🔬 Technical Terms
+## Technical Terms
 
 ### **RxNorm / RxCUI**
 A standardized naming system for medications used by the U.S. government.
@@ -199,7 +199,7 @@ Irregular heartbeat
 
 ---
 
-## 💡 Quick Reference
+## Quick Reference
 
 **When adding a medication, you'll need:**
 1. **Name**: What it's called (like "lisinopril")
@@ -211,7 +211,7 @@ Irregular heartbeat
 
 ---
 
-## ⚠️ Important Reminders
+## Important Reminders
 
 1. **ClariMed is a tracker, not a doctor**
    - Never use it to diagnose conditions

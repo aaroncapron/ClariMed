@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 Current Features (v0.6.0)
+## Current Features (v0.6.0)
 
 ### Medication Management
 
@@ -14,12 +14,12 @@
 - **Edit mode**: Click edit button, form auto-fills, seamless updates
 - **Auto-scroll**: Automatically scrolls to edit form when editing
 
-#### RxNav Smart Autocomplete 🔍
+#### RxNav Smart Autocomplete
 ClariMed integrates with NIH's RxNav API for intelligent medication lookup:
 
 **Drug Types**:
-- 🔵 **Generic drugs** (SCD - Semantic Clinical Drug)
-- 🟢 **Brand names** (SBD - Semantic Branded Drug)
+- Generic drugs (SCD - Semantic Clinical Drug)
+- Brand names (SBD - Semantic Branded Drug)
 
 **Search Features**:
 - **Hybrid search**: Primary exact match, falls back to `approximateTerm` for partial matches
@@ -35,7 +35,7 @@ ClariMed integrates with NIH's RxNav API for intelligent medication lookup:
 - **RxCUI storage**: Stores RxCUI codes for future interaction checking
 - **✓ Verified badge**: Shows on API-validated medications
 
-#### Maintenance Medication Detection 🏥
+#### Maintenance Medication Detection
 Automatic detection of long-term maintenance medications:
 
 **Detection Categories**:
@@ -56,15 +56,15 @@ Automatic detection of long-term maintenance medications:
 - **Navy blue badge**: "Maintenance" indicator in Clinical mode
 - **Helpful explanations**: Shows why it's maintenance (e.g., "Blood pressure medication - ACE inhibitor")
 
-#### Display Modes: Clarity vs Clinical 🎨
+#### Display Modes: Clarity vs Clinical
 
-**Clarity Mode** (📄 Teal):
+**Clarity Mode** (Teal):
 - Simple, minimal interface
 - Essential information only
 - Perfect for everyday users
 - Clean, uncluttered design
 
-**Clinical Mode** (📚 Navy):
+**Clinical Mode** (Navy):
 - Detailed medical information
 - All fields visible
 - Maintenance badges shown
@@ -153,7 +153,7 @@ Automatic detection of long-term maintenance medications:
 
 ---
 
-## 🎨 Design System
+## Design System
 
 ### Color Palette
 - **Primary (Teal)**: `#14b8a6` - Clarity mode, main actions
@@ -177,7 +177,7 @@ Automatic detection of long-term maintenance medications:
 
 ---
 
-## 🔧 Technical Details
+## Technical Details
 
 ### Data Models
 

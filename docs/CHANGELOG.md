@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.0] - 2025-10-28
+
+### Added
+
+**Allergy Tracking System**
+- Complete allergy management UI with full CRUD operations
+- RxNav API integration for allergen autocomplete search
+- Severity levels (mild, moderate, severe, anaphylaxis) with color-coded badges
+- Reaction description field for documenting symptoms
+- Allergy list component integrated into profile page
+- Search allergens by name with real-time suggestions
+
+**Medication Conflict Warnings**
+- Automatic allergy conflict detection when adding medications
+- Drug class cross-reactivity checking for safer medication management
+- Support for 6 drug classes:
+  - Penicillins (amoxicillin, ampicillin, etc.)
+  - Cephalosporins (cephalexin, cefuroxime, etc.)
+  - Sulfa drugs (sulfamethoxazole, sulfasalazine, etc.)
+  - NSAIDs (ibuprofen, naproxen, aspirin, etc.)
+  - Statins (atorvastatin, simvastatin, etc.)
+  - Macrolides (azithromycin, erythromycin, etc.)
+- Red alert banner displays when medication conflicts with recorded allergies
+- Ingredient extraction algorithm for better matching (removes dosages and forms)
+
+**Database Improvements**
+- Automatic user profile creation via database trigger
+- New users automatically get a profile when signing up
+- Backfill existing auth.users without profiles
+- Migration 005: Schema cleanup and auto-profile creation
+
+### Changed
+- Replaced `full_name` field with `first_name` and `last_name` in user profiles
+- Updated signup flow to collect separate name fields
+- Enhanced profile settings with structured name fields
+
+### Fixed
+- Missing user profiles for existing authenticated users
+- User profile creation now happens automatically via trigger function
+
+### Technical
+- Created `lib/allergies.ts` with comprehensive allergy CRUD operations
+- Added `checkAllergyConflicts()` function with drug class cross-reactivity
+- Created `AllergyList.tsx` component (300+ lines) with RxNav search
+- Added `DRUG_CLASS_CROSS_REACTIONS` map for related medications
+- Database trigger: `handle_new_user()` auto-creates profiles
+- Enhanced `AddMedicationForm.tsx` with allergy checking
+- Added TypeScript types: `Allergy`, `AllergySeverity`, `AllergyFormData`
+
+---
+
 ## [0.6.1] - 2025-10-28
 
 ### Added
@@ -58,7 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - 2025-10-23
 
-### 🎉 Major Features Added
+### Added
 
 #### **Supabase Authentication & Security**
 - Full authentication system with email/password
@@ -91,13 +142,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Protected route wrappers
 - Consistent auth UI styling
 
-### 🎨 UI Improvements
+### UI Improvements
 - Two-mode toggle (Clarity vs Clinical) with floating button
 - Changed maintenance badge from purple to navy blue
 - Improved form validation and error messages
 - Better loading states during authentication
 
-### 📝 Documentation
+### Documentation
 - Added `SUPABASE-SETUP.md` - Complete Supabase configuration guide
 - Added `FEATURE-AUTHENTICATION.md` - Authentication implementation details
 - Added `SECURITY-CHECKLIST.md` - Security best practices
@@ -105,7 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated README.md - Concise version with v0.6.0 status
 - Updated roadmap to use industry-standard versioning
 
-### 🔧 Technical Changes
+### Technical Changes
 - Added `@supabase/supabase-js` and `@supabase/ssr` dependencies
 - Created `lib/supabase/` directory structure
 - Added `database.types.ts` for TypeScript types
@@ -118,7 +169,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - 2025-10-11
 
-### 🎉 Major Features Added
+### Added
 
 #### **Maintenance Medication Detection**
 - Smart auto-detection based on drug classes and patterns
@@ -153,23 +204,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Only shows one entry per unique drug formulation
 - Reduces clutter by 30-50%
 
-### 🐛 Bug Fixes
+### Fixed
 - Fixed lisinopril not auto-checking as maintenance medication
 - Fixed autocomplete not appearing for partial drug names (< 5 characters)
 - Fixed search results appearing in random order
 
-### 🎨 UI Improvements
+### UI Improvements
 - Added dosage form indicator in dropdown (`🔵 Generic • Tablet`)
 - Improved maintenance checkbox styling (blue info box with icon)
 - Better explanation text for auto-suggestions
 
-### 📝 Documentation
+### Documentation
 - Added `MAINTENANCE-MEDS-FEATURE.md` - Complete technical documentation
 - Added `SMART-AUTOCOMPLETE-FEATURE.md` - Autocomplete implementation details
 - Updated README with Phase 2 progress
 - Created CHANGELOG.md
 
-### 🔧 Technical Changes
+### Technical Changes
 - Added `isMaintenance: boolean` field to Medication type
 - Added `therapeuticClass?: string` for future ATC code storage
 - Added `ingredients?: string[]` for combo drug interaction checking
@@ -181,14 +232,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.0] - 2025-10-11
 
-### 🎉 Major Features Added
+### Added
 - **RxNav Autocomplete** - Live medication lookup with NIH RxNav API
 - Generic (SCD) and Brand (SBD) drug results
 - Auto-fill dosage from drug name
 - Store RxCUI codes with medications
 - Green "✓ Verified" badge on validated medications
 
-### 🎨 UI Improvements
+### UI Improvements
 - Search medications by name, dosage, frequency, or notes
 - Beautiful autocomplete dropdown with hover states
 - Loading spinner during API calls
@@ -198,11 +249,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2025-10-10
 
-### 🎉 Major Features Added
+### Added
 - **Edit medications** - Click edit button, form prefills, update functionality
 - **Real-time search/filter** - Search by name, dosage, frequency, notes
 
-### 🎨 UI Improvements
+### UI Improvements
 - Search bar with clear button
 - Result count display
 - Improved empty states
@@ -211,7 +262,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2025-10-09
 
-### 🎨 UI Overhaul
+### Changed
 - Professional centered layout with max-width container
 - Clean header bar with branding
 - Large, obvious buttons with hover effects
@@ -223,7 +274,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2025-10-08
 
-### 🎉 MVP Launch
+### Added
 - Add medications (name, dosage, frequency, notes)
 - View medication list
 - Delete medications with confirmation
@@ -282,9 +333,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Legend:**
-- 🎉 **Major Feature** - New significant functionality
-- 🐛 **Bug Fix** - Fixed broken behavior
-- 🎨 **UI Improvement** - Visual or UX enhancement
-- 📝 **Documentation** - Added or updated docs
-- 🔧 **Technical** - Internal changes, refactoring
-- ⚠️ **Breaking Change** - May require migration
+- **Major Feature** - New significant functionality
+- **Bug Fix** - Fixed broken behavior
+- **UI Improvement** - Visual or UX enhancement
+- **Documentation** - Added or updated docs
+- **Technical** - Internal changes, refactoring
+- **Breaking Change** - May require migration

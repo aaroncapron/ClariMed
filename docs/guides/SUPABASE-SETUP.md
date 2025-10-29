@@ -1,4 +1,4 @@
-# 🚀 Supabase Setup Guide for ClariMed
+# Supabase Setup Guide for ClariMed
 
 Follow these steps to set up your Supabase project and connect ClariMed to your database.
 
@@ -21,7 +21,7 @@ Follow these steps to set up your Supabase project and connect ClariMed to your 
 
 ## Step 2: Get Your API Credentials
 
-1. In your Supabase project dashboard, click the **Settings** icon (⚙️) in the left sidebar
+1. In your Supabase project dashboard, click the **Settings** icon in the left sidebar
 2. Click **API** under Project Settings
 3. You'll see two important values:
    - **Project URL** (looks like: `https://abcdefghijklmnop.supabase.co`)
@@ -87,7 +87,7 @@ You can customize the email templates:
    - Reset password
 3. Customize the text and styling if you want (optional)
 
-### ⚠️ For Production (SMTP Required)
+### For Production (SMTP Required)
 
 **Important:** Supabase's native email sender has rate limits and may not be reliable for production use. 
 
@@ -261,4 +261,4 @@ When you're ready to deploy:
 
 ---
 
-**Questions? Issues?** Let me know and I'll help troubleshoot! 🚀
+**Questions? Issues?** Let me know and I'll help troubleshoot!

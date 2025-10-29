@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 Key Endpoints We'll Use
+## Key Endpoints We'll Use
 
 ### 1. Search Drugs by Name
 **Endpoint**: `/REST/drugs.json`
@@ -194,7 +194,7 @@ GET https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=lissinopril
 
 ---
 
-## 🛠️ Implementation Plan for ClariMed
+## Implementation Plan for ClariMed
 
 ### Phase 1: Basic Lookup (Now)
 1. **Autocomplete dropdown** - User types "lisino..." → show suggestions
@@ -216,7 +216,7 @@ GET https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=lissinopril
 
 ---
 
-## 📝 Code Skeleton
+## Code Skeleton
 
 ```typescript
 // lib/rxnav.ts
@@ -342,4 +342,4 @@ Try these right now to see live data:
 4. **Store RxCUI** with each medication
 5. **Build interaction checker** (Phase 2)
 
-Want me to start building this integration now? 🚀
+Want me to start building this integration now?

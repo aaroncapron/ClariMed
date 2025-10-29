@@ -4,13 +4,13 @@
 
 ---
 
-## 🎯 What is ClariMed?
+## What is ClariMed?
 
 ClariMed is a free medication tracker that helps you keep track of all your medications in one place. Think of it like a digital medication list that's always with you!
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### **Step 1: Add Your First Medication**
 
@@ -63,7 +63,7 @@ In the future, ClariMed will have a "Clarity Mode" that shows only your maintena
 
 ---
 
-## 🔍 Searching Your Medications
+## Searching Your Medications
 
 Got a lot of medications? Use the **search bar** at the top!
 
@@ -77,7 +77,7 @@ The list will instantly show only matching medications.
 
 ---
 
-## ✏️ Editing a Medication
+## Editing a Medication
 
 Need to change something?
 
@@ -88,7 +88,7 @@ Need to change something?
 
 ---
 
-## 🗑️ Deleting a Medication
+## Deleting a Medication
 
 Stopped taking something?
 
@@ -114,7 +114,7 @@ Stopped taking something?
 
 ---
 
-## 💡 Tips & Tricks
+## Tips & Tricks
 
 ### **Tip 1: Use the Autocomplete**
 When adding a medication, you only need to type a few letters:

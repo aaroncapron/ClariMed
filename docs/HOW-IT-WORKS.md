@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 The Big Picture
+## The Big Picture
 
 Think of ClariMed as three parts working together:
 
@@ -14,7 +14,7 @@ Think of ClariMed as three parts working together:
 
 ---
 
-## 🔍 What Happens When You Search for a Medication
+## What Happens When You Search for a Medication
 
 ### **Step 1: You Start Typing**
 You type a few letters like "lisi..."
@@ -42,7 +42,7 @@ Click the one that matches your prescription bottle!
 
 ---
 
-## ✅ What Happens When You Add a Medication
+## What Happens When You Add a Medication
 
 ### **Step 1: You Fill Out the Form**
 - Medication name (from the search)
@@ -75,7 +75,7 @@ Your new medication appears as a card with:
 
 ---
 
-## 🎨 Why Results Are Organized That Way
+## Why Results Are Organized That Way
 
 ### **Tablets First, Then Capsules, Then Liquids**
 Most people take tablets, so those appear first. It's like organizing a grocery store - put the popular stuff up front!
@@ -185,7 +185,7 @@ Much easier to read!
 
 ---
 
-## 🛡️ Safety & Accuracy
+## Safety & Accuracy
 
 ### **Why We Use the NIH RxNav Database**
 1. **Government-run** - Trustworthy and official
@@ -203,7 +203,7 @@ Much easier to read!
 
 ---
 
-## 🔧 Technical Summary (For the Curious)
+## Technical Summary (For the Curious)
 
 **Stack:**
 - Built with Next.js 14 (React framework)
@@ -233,7 +233,7 @@ Saved to localStorage (your device)
 
 ---
 
-## 📊 Performance
+## Performance
 
 **How fast is it?**
 - Autocomplete appears in ~150-500 milliseconds (less than half a second)

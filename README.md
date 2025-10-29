@@ -2,7 +2,7 @@
 
 Simple, secure medication tracking with smart autocomplete and verification.
 
-[![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)](https://github.com/aaroncapron/ClariMed)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/aaroncapron/ClariMed)
 [![License](https://img.shields.io/badge/license-TBD-lightgrey.svg)](LICENSE)
 
 ---
@@ -11,6 +11,8 @@ Simple, secure medication tracking with smart autocomplete and verification.
 
 -  **Secure authentication** with Supabase
 -  **Smart medication tracking** with RxNav API integration
+-  **Allergy tracking** with medication conflict warnings
+-  **Drug class cross-reactivity** checking for safety
 -  **Intelligent autocomplete** with brand/generic drug search
 -  **Maintenance medication detection**
 -  **Dual-mode interface** (Clarity vs Clinical views)
@@ -55,7 +57,7 @@ Open [http://localhost:3000](http://localhost:3000)
 - [Features Overview](docs/FEATURES.md) - What ClariMed can do
 - [Quick Start Guide](docs/guides/QUICK-START.md) - Get up and running
 - [Supabase Setup](docs/guides/SUPABASE-SETUP.md) - Database configuration
-- [Development Progress](docs/DEVELOPMENT-PROGRESS.md) - Current roadmap
+- [Changelog](docs/CHANGELOG.md) - Version history and updates
 - [Security Checklist](docs/SECURITY-CHECKLIST.md) - Security best practices
 
 ### Documentation Categories
@@ -68,13 +70,13 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Roadmap
 
 **v0.6.x** ✅ - Authentication and data migration (COMPLETE)  
-**v0.7.x** 🔄 - User profiles and allergy tracking (IN PROGRESS)  
-**v0.8.x** - Prescription savings coupons (GoodRx, SingleCare, MySimpleRX)  
+**v0.7.x** ✅ - User profiles and allergy tracking (COMPLETE)  
+**v0.8.x** 🔄 - Prescription savings coupons (IN PROGRESS)  
 **v0.9.x** - Multi-device sync and pet profiles  
 **v1.0.x** - Medication reminders and notifications  
 **v1.1.x** - Production release with PWA support
 
-See [DEVELOPMENT-PROGRESS.md](docs/DEVELOPMENT-PROGRESS.md) for details.
+See [CHANGELOG.md](docs/CHANGELOG.md) for detailed version history.
 
 ---
 
