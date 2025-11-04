@@ -253,7 +253,7 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
             required
           />
           <p className="text-sm text-gray-500 mt-1">
-            How to take this medication (e.g., "Take 2 capsules weekly" or "Split tablet in half, take with food")
+            How to take this medication (e.g., &quot;Take 2 capsules weekly&quot; or &quot;Split tablet in half, take with food&quot;)
           </p>
         </div>
 

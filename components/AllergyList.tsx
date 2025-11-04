@@ -326,7 +326,7 @@ export default function AllergyList() {
       {/* Allergies List */}
       {allergies.length === 0 ? (
         <p className="text-gray-500 text-center py-8">
-          No allergies recorded. Click "Add Allergy" to add one.
+          No allergies recorded. Click &quot;Add Allergy&quot; to add one.
         </p>
       ) : (
         <div className="space-y-3">
