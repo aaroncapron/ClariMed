@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2025-11-04
+
+### Added
+
+**Enhanced Drug Utilization Review (DUR) System**
+- Health conditions management UI on profile page
+- `HealthConditionList` component with autocomplete from 40+ common conditions
+- Category-based condition organization (cardiovascular, respiratory, endocrine, pregnancy, etc.)
+- Contraindication checking when adding medications
+- Health condition alerts displayed in confirmation dialog
+- Severity-based warnings: Critical, Major, Moderate, Minor
+
+**Safety Enhancements**
+- Pregnancy contraindications: ACE inhibitors, statins, warfarin
+- Kidney disease warnings: NSAIDs, metformin
+- Liver disease alerts: Acetaminophen (high doses), methotrexate
+- Asthma warnings: NSAIDs, beta blockers
+- Comprehensive contraindication database covering 40+ conditions
+
+**User Interface Improvements**
+- Health conditions section added to profile page
+- Autocomplete suggestions for common medical conditions
+- Condition categories with color coding
+- Contraindication warnings integrated into medication confirmation dialog
+
+### Fixed
+
+**CRITICAL SAFETY FIX**
+- Fixed allergy detection bug where brand names with generic in parentheses/brackets weren't matching
+- Before: "Ansaid (flurbiprofen)" allergy failed to catch "Flurbiprofen" medication
+- After: Properly extracts generic names from both `()` and `[]` notation
+- Enhanced `extractIngredients()` function with dual regex patterns
+- Added 6 comprehensive tests for bracket/parentheses scenarios
+
+### Technical
+- Created `components/HealthConditionList.tsx`
+- Created `lib/health-conditions.ts` for Supabase CRUD operations
+- Created `lib/contraindications.ts` with comprehensive medication safety rules
+- Created `lib/medical-reference.ts` with 18 common allergies and 40+ conditions
+- Database migration `006_health_conditions.sql` with RLS policies
+- 85 contraindication tests, 60 medical reference tests
+- All 159 tests passing
+
+### Documentation
+- Updated `.copilot-instructions.md` with Windows cmd.exe git commit format
+- Created `docs/ENHANCED-DUR-SYSTEM.md` with detailed technical documentation
+
+### Compliance
+- All warnings remain informational and non-blocking
+- FDA disclaimer included in all confirmation dialogs
+- Maintains wellness tool classification
+
+---
+
 ## [Unreleased]
 
 ### Added
