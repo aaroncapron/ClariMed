@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+**Automated Testing Infrastructure**
+- Jest 29.7.0 test framework with React Testing Library integration
+- 41 comprehensive unit tests covering core functionality
+- Test coverage: maintenance detection, allergy conflicts, RxNav API, view mode persistence
+- Coverage thresholds set to 70% for quality assurance
+- Test scripts: `npm test`, `npm run test:ci`, `npm run test:coverage`
+
 **Allergy Tracking System**
 - Complete allergy management UI with full CRUD operations
 - RxNav API integration for allergen autocomplete search

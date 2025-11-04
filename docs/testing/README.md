@@ -2,6 +2,36 @@
 
 This directory contains comprehensive test documentation and checklists for ClariMed.
 
+## Automated Testing
+
+### Jest Test Suite
+**Framework:** Jest 29.7.0 with React Testing Library  
+**Coverage Thresholds:** 70% (branches, functions, lines, statements)  
+**Status:** ✅ 41/41 tests passing
+
+**Test Coverage:**
+- `__tests__/lib/maintenance.test.ts` - Maintenance medication detection
+- `__tests__/lib/allergies.test.ts` - Allergy conflict checking
+- `__tests__/lib/rxnav.test.ts` - RxNav API integration
+- `__tests__/contexts/ViewModeContext.test.tsx` - View mode persistence
+
+**Running Tests:**
+```bash
+npm test              # Run tests in watch mode
+npm run test:ci       # Run tests once (for CI/CD)
+npm run test:coverage # Run with coverage report
+```
+
+**Key Features:**
+- Automated localStorage mocking for browser API testing
+- React component testing with React Testing Library
+- Coverage reporting for code quality metrics
+- Excludes archived code from test runs
+
+---
+
+## Manual Testing
+
 ## Test Documents
 
 ### [AUTH-TESTING-CHECKLIST.md](./AUTH-TESTING-CHECKLIST.md)
@@ -68,10 +98,11 @@ All tests must be:
 
 ## Test Status Summary
 
-| Feature | Version | Tests | Status | Date |
-|---------|---------|-------|--------|------|
-| Authentication | v0.6.0 | 20/20 | ✅ PASS | Oct 23, 2025 |
-| Data Migration | v0.6.1 | 10/10 | ✅ PASS | Oct 28, 2025 |
+| Test Type | Feature | Version | Tests | Status | Date |
+|-----------|---------|---------|-------|--------|------|
+| Automated | Core Libraries | v0.7.0 | 41/41 | ✅ PASS | Oct 28, 2025 |
+| Manual | Authentication | v0.6.0 | 20/20 | ✅ PASS | Oct 23, 2025 |
+| Manual | Data Migration | v0.6.1 | 10/10 | ✅ PASS | Oct 28, 2025 |
 
 ---
 
