@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+**Enhanced User Safety Features**
+- Confirmation dialog when adding medications with allergy conflicts or drug interactions
+- Modal overlay displays warning summary before final confirmation
+- "Add Anyway" option maintains user autonomy while emphasizing informed decisions
+- Interaction summary banner on dashboard (above medication list)
+- Mode-specific summary designs: compact for clarity mode, detailed for clinical mode
+- Per-medication interaction indicators with severity-based color coding
+- Clickable interaction badges in clinical mode to expand full details
+- Amber border highlighting for medications with critical or major interactions
+
+**Dashboard Improvements**
+- `InteractionSummary` component shows overall interaction count and severity distribution
+- Expandable interaction details in clinical mode
+- Individual medication cards show interaction count badges
+- Visual distinction between medications with and without interactions
+- Real-time interaction checking across medication list
+
+### Technical
+- Created `components/InteractionSummary.tsx` with mode-specific views
+- Enhanced `MedicationList.tsx` to check and display interactions per medication
+- Added confirmation dialog state management to `AddMedicationForm.tsx`
+- Integrated interaction checking into medication list rendering
+- Modal displays allergy warnings and drug interactions with severity badges
+
+### Compliance
+- Confirmation dialog includes FDA disclaimer
+- User can cancel or proceed with full awareness
+- All warnings remain informational and non-blocking
+- Maintains wellness tool classification
+
+---
+
 ## [0.8.0] - 2025-11-04
 
 ### Added

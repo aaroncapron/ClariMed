@@ -11,6 +11,7 @@ import MedicationList from '@/components/MedicationList';
 import AddMedicationForm from '@/components/AddMedicationForm';
 import FloatingViewToggle from '@/components/FloatingViewToggle';
 import MigrationBanner from '@/components/MigrationBanner';
+import InteractionSummary from '@/components/InteractionSummary';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -224,6 +225,11 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
+      )}
+
+      {/* Interaction Summary */}
+      {!showForm && medications.length >= 2 && (
+        <InteractionSummary medications={medications} />
       )}
 
       {/* Add/Edit Form */}

@@ -38,6 +38,10 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   // Drug interaction warning state
   const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
   const [isCheckingInteractions, setIsCheckingInteractions] = useState(false);
+  
+  // Confirmation dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState<Omit<Medication, 'id' | 'createdAt' | 'updatedAt'> | null>(null);
 
   // Debounced search effect
   useEffect(() => {
@@ -153,7 +157,7 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       return;
     }
 
-    onSubmit({
+    const medicationData = {
       name: name.trim(),
       dosage: dosage.trim(),
       frequency: frequency.trim(),
@@ -161,7 +165,23 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       rxcui: selectedRxcui,
       verified: !!selectedRxcui,
       isMaintenance,
-    });
+    };
+
+    // Check if there are any warnings (allergies or interactions)
+    const hasWarnings = allergyWarning || interactions.length > 0;
+    
+    if (hasWarnings && !isEditing) {
+      // Show confirmation dialog
+      setPendingSubmitData(medicationData);
+      setShowConfirmDialog(true);
+    } else {
+      // No warnings or editing mode, proceed directly
+      submitMedication(medicationData);
+    }
+  };
+
+  const submitMedication = (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
+    onSubmit(data);
 
     // Reset form
     setName('');
@@ -171,6 +191,21 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     setSelectedRxcui(undefined);
     setIsMaintenance(false);
     setMaintenanceReason(null);
+    setAllergyWarning(null);
+    setInteractions([]);
+    setShowConfirmDialog(false);
+    setPendingSubmitData(null);
+  };
+
+  const handleConfirmAdd = () => {
+    if (pendingSubmitData) {
+      submitMedication(pendingSubmitData);
+    }
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmDialog(false);
+    setPendingSubmitData(null);
   };
 
   return (
@@ -378,6 +413,95 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
           Cancel
         </button>
       </div>
+
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    Potential Safety Concerns Detected
+                  </h3>
+                  <p className="text-gray-700">
+                    We found potential safety concerns with this medication. Please review the warnings below before proceeding.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                {allergyWarning && (
+                  <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+                    <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      Allergy Alert
+                    </h4>
+                    <p className="text-red-800 text-sm">{allergyWarning}</p>
+                  </div>
+                )}
+
+                {interactions.map((interaction, index) => {
+                  const badge = getSeverityBadge(interaction.severity);
+                  return (
+                    <div key={index} className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl">
+                      <div className="flex items-start gap-2 mb-2">
+                        <h4 className="font-bold text-amber-900 flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          Drug Interaction
+                        </h4>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      </div>
+                      <p className="text-amber-900 font-medium text-sm mb-1">
+                        Interacts with: {interaction.drugB.name}
+                      </p>
+                      <p className="text-amber-800 text-sm">{interaction.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl mb-6">
+                <p className="text-sm text-blue-900 font-medium mb-2">
+                  Important: This information is for educational purposes only.
+                </p>
+                <p className="text-sm text-blue-800">
+                  Always consult your healthcare provider before starting, stopping, or changing any medication. 
+                  They can provide personalized medical advice based on your complete health history.
+                </p>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={handleCancelConfirm}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                >
+                  Review Information
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmAdd}
+                  className="flex-1 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition-all"
+                >
+                  I Understand, Add Anyway
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
