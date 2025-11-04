@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import AllergyList from '@/components/AllergyList'
+import HealthConditionList from '@/components/HealthConditionList'
 
 interface UserProfile {
   first_name?: string
@@ -255,6 +256,11 @@ export default function ProfilePage() {
         {/* Allergy Management */}
         <div className="mt-8">
           <AllergyList />
+        </div>
+
+        {/* Health Conditions Management */}
+        <div className="mt-8">
+          <HealthConditionList />
         </div>
       </main>
     </div>
