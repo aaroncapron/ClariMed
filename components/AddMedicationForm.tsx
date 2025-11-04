@@ -6,6 +6,8 @@ import { searchDrugs, parseDosage, parseForm, type DrugSearchResult } from '@/li
 import { isLikelyMaintenanceMed, getMaintenanceReason } from '@/lib/maintenance';
 import { checkAllergyConflicts, getAllergies } from '@/lib/allergies';
 import { checkMedicationInteractions, getSeverityBadge, type DrugInteraction } from '@/lib/interactions';
+import { checkContraindications, type ContraindicationWarning } from '@/lib/contraindications';
+import { getHealthConditions } from '@/lib/health-conditions';
 
 interface AddMedicationFormProps {
   onSubmit: (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -38,6 +40,10 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   // Drug interaction warning state
   const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
   const [isCheckingInteractions, setIsCheckingInteractions] = useState(false);
+  
+  // Contraindication warning state
+  const [contraindications, setContraindications] = useState<ContraindicationWarning[]>([]);
+  const [isCheckingContraindications, setIsCheckingContraindications] = useState(false);
   
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -99,6 +105,7 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     
     checkForAllergyConflicts(medicationName);
     checkForInteractions(medicationName, drug.rxcui);
+    checkForContraindications(medicationName);
   };
   
   // Check for allergy conflicts
@@ -149,6 +156,44 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     }
   };
 
+  /**
+   * Checks for contraindications with user's health conditions.
+   * This is informational only and does not constitute medical advice.
+   */
+  const checkForContraindications = async (medicationName: string) => {
+    if (isEditing) {
+      setContraindications([]);
+      return;
+    }
+    
+    try {
+      setIsCheckingContraindications(true);
+      setContraindications([]);
+      
+      const healthConditions = await getHealthConditions();
+      
+      // Create a temporary medication object for checking
+      const tempMedication: Medication = {
+        id: 'temp',
+        name: medicationName,
+        dosage: '',
+        frequency: '',
+        isMaintenance: false,
+        verified: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const warnings = checkContraindications(tempMedication, healthConditions);
+      
+      setContraindications(warnings);
+    } catch (err) {
+      console.error('Error checking contraindications:', err);
+    } finally {
+      setIsCheckingContraindications(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -167,8 +212,8 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       isMaintenance,
     };
 
-    // Check if there are any warnings (allergies or interactions)
-    const hasWarnings = allergyWarning || interactions.length > 0;
+    // Check if there are any warnings (allergies, interactions, or contraindications)
+    const hasWarnings = allergyWarning || interactions.length > 0 || contraindications.length > 0;
     
     if (hasWarnings && !isEditing) {
       // Show confirmation dialog
@@ -193,6 +238,7 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     setMaintenanceReason(null);
     setAllergyWarning(null);
     setInteractions([]);
+    setContraindications([]);
     setShowConfirmDialog(false);
     setPendingSubmitData(null);
   };
@@ -467,6 +513,49 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
                         Interacts with: {interaction.drugB.name}
                       </p>
                       <p className="text-amber-800 text-sm">{interaction.description}</p>
+                    </div>
+                  );
+                })}
+
+                {contraindications.map((warning, index) => {
+                  const severityColors = {
+                    critical: 'border-red-400 bg-red-50',
+                    major: 'border-orange-400 bg-orange-50',
+                    moderate: 'border-yellow-400 bg-yellow-50',
+                    minor: 'border-blue-400 bg-blue-50',
+                  };
+                  const severityTextColors = {
+                    critical: 'text-red-900',
+                    major: 'text-orange-900',
+                    moderate: 'text-yellow-900',
+                    minor: 'text-blue-900',
+                  };
+                  const severityBadgeColors = {
+                    critical: 'bg-red-100 text-red-800 border-red-300',
+                    major: 'bg-orange-100 text-orange-800 border-orange-300',
+                    moderate: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+                    minor: 'bg-blue-100 text-blue-800 border-blue-300',
+                  };
+                  
+                  return (
+                    <div key={`contra-${index}`} className={`p-4 border-2 rounded-xl ${severityColors[warning.severity]}`}>
+                      <div className="flex items-start gap-2 mb-2">
+                        <h4 className={`font-bold flex items-center gap-2 ${severityTextColors[warning.severity]}`}>
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Health Condition Alert
+                        </h4>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded border ${severityBadgeColors[warning.severity]}`}>
+                          {warning.severity.toUpperCase()}
+                        </span>
+                      </div>
+                      <p className={`font-medium text-sm mb-1 ${severityTextColors[warning.severity]}`}>
+                        Condition: {warning.condition}
+                      </p>
+                      <p className={`text-sm ${severityTextColors[warning.severity]}`}>
+                        {warning.description}
+                      </p>
                     </div>
                   );
                 })}
