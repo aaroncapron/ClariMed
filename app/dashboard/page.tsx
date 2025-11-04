@@ -234,6 +234,7 @@ export default function DashboardPage() {
             onCancel={handleCancel}
             initialData={editingMed || undefined}
             isEditing={!!editingMed}
+            existingMedications={medications.filter(m => m.id !== editingMed?.id)}
           />
         </div>
       )}

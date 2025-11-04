@@ -4,7 +4,7 @@
 
 ---
 
-## Current Features (v0.6.0)
+## Current Features (v0.8.0)
 
 ### Medication Management
 
@@ -97,7 +97,62 @@ Automatic detection of long-term maintenance medications:
 
 ---
 
-## 🔐 Authentication & Security (v0.6.0)
+## �️ Safety Features (v0.8.0)
+
+### Allergy Management
+- **Complete allergy tracking**: Add, edit, delete allergies
+- **Severity levels**: Mild, moderate, severe, anaphylaxis
+- **Reaction documentation**: Describe symptoms for each allergy
+- **RxNav allergen search**: Autocomplete for accurate allergen names
+- **Profile integration**: Manage allergies from profile page
+
+### Allergy Conflict Detection
+- **Automatic checking**: Scans new medications against recorded allergies
+- **Cross-reactivity detection**: Identifies related drug classes
+- **Supported drug classes**:
+  - Penicillins and cephalosporins
+  - Sulfa drugs
+  - NSAIDs (including aspirin)
+  - Statins
+  - Macrolides
+- **Real-time warnings**: Alert before adding conflicting medication
+- **Ingredient extraction**: Matches even with dosage/form variations
+
+### Drug Interaction Checking (DUR)
+**Important Disclaimer**: This system provides educational information only. Always consult your healthcare provider about medication interactions.
+
+**Interaction Detection**:
+- **RxNav API integration**: Uses NIH's DrugBank interaction database
+- **Real-time checking**: Scans when adding new medications
+- **Pairwise analysis**: Checks new medication against all existing ones
+- **Severity classification**:
+  - **Critical**: Contraindicated interactions (red)
+  - **Major**: Serious interactions requiring monitoring (orange)
+  - **Moderate**: Use with caution (yellow)
+  - **Minor**: Generally safe but worth noting (blue)
+
+**User Experience**:
+- **Color-coded warnings**: Visual severity indicators
+- **Detailed descriptions**: Explains the interaction mechanism
+- **Source attribution**: Shows DrugBank as the data source
+- **Non-blocking**: Users maintain full control over their medication list
+- **Educational disclaimers**: Clear reminders to consult healthcare providers
+
+**Technical Requirements**:
+- Only checks medications with RxCUI codes (verified medications)
+- Requires internet connection for real-time API calls
+- No data stored on interaction checks (privacy-focused)
+
+**FDA Compliance**:
+- Informational tool only, not medical advice
+- Does not diagnose, treat, or prevent conditions
+- Does not recommend or prescribe medications
+- User responsibility to verify with healthcare professionals
+- Not classified as a medical device
+
+---
+
+## �🔐 Authentication & Security (v0.6.0)
 
 ### User Authentication
 - **Email/password signup**: Secure account creation
@@ -143,7 +198,7 @@ Automatic detection of long-term maintenance medications:
 
 ### v1.0.x - Production Release
 - **PDF export**: Print medication list for doctors
-- **Drug interaction checking**: DUR (Drug Utilization Review)
+- **Interaction overview dashboard**: Summary of all current interactions
 - **OTC tracking**: Over-the-counter medications
 - **Supplement tracking**: Vitamins and supplements
 - **Sorting**: Sort by name, date, dosage, status

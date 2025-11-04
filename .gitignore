@@ -51,3 +51,6 @@ DEPLOYMENT-NOTES.md
 
 # Session notes (work in progress, not for public repo)
 /docs/SESSION-*.md
+
+# Copilot internal instructions (private)
+.copilot-instructions.md

@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] - 2025-11-04
+
+### Added
+
+**Drug Utilization Review (DUR) System**
+- Drug-to-drug interaction checking using RxNav Interaction API
+- Real-time interaction detection when adding new medications
+- Severity classification: Critical, Major, Moderate, Minor
+- Color-coded warning badges for quick severity identification
+- Detailed interaction descriptions from DrugBank source
+- FDA-compliant disclaimers on all interaction warnings
+- Automatic checking against all existing medications with RxCUI codes
+
+**Enhanced Safety Features**
+- Interaction warnings display before medication is added
+- Educational information about potential drug interactions
+- Clear disclaimers: "This information is for educational purposes only"
+- Emphasis on consulting healthcare providers for all medication decisions
+
+### Technical
+- Created `lib/interactions.ts` with comprehensive interaction checking functions
+- Added `checkDrugInteraction()` for pairwise medication checking
+- Added `checkMedicationInteractions()` for new medication validation
+- Added `checkAllInteractions()` for complete medication list analysis
+- Implemented severity mapping from RxNav to standardized levels
+- Added interaction warning UI to `AddMedicationForm.tsx`
+- Updated dashboard to pass existing medications for interaction checking
+- Created 60 comprehensive tests (all passing) including new interaction tests
+- Test coverage for severity mapping, API integration, and edge cases
+
+### Compliance
+- System provides informational warnings only (not medical advice)
+- Does not prevent users from adding medications (user autonomy maintained)
+- Clear FDA-compliant language throughout
+- No diagnostic or prescriptive functionality
+- Maintains status as wellness/informational tool, not medical device
+
+---
+
 ## [0.7.0] - 2025-10-28
 
 ### Added

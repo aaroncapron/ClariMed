@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { ViewModeProvider, useViewMode } from '@/contexts/ViewModeContext';
 
 describe('ViewModeContext', () => {

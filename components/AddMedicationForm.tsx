@@ -5,15 +5,17 @@ import type { Medication } from '@/types';
 import { searchDrugs, parseDosage, parseForm, type DrugSearchResult } from '@/lib/rxnav';
 import { isLikelyMaintenanceMed, getMaintenanceReason } from '@/lib/maintenance';
 import { checkAllergyConflicts, getAllergies } from '@/lib/allergies';
+import { checkMedicationInteractions, getSeverityBadge, type DrugInteraction } from '@/lib/interactions';
 
 interface AddMedicationFormProps {
   onSubmit: (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
   initialData?: Medication;
   isEditing?: boolean;
+  existingMedications?: Medication[];
 }
 
-export default function AddMedicationForm({ onSubmit, onCancel, initialData, isEditing = false }: AddMedicationFormProps) {
+export default function AddMedicationForm({ onSubmit, onCancel, initialData, isEditing = false, existingMedications = [] }: AddMedicationFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [dosage, setDosage] = useState(initialData?.dosage || '');
   const [frequency, setFrequency] = useState(initialData?.frequency || '');
@@ -26,12 +28,16 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRxcui, setSelectedRxcui] = useState<string | undefined>(initialData?.rxcui);
   const [maintenanceReason, setMaintenanceReason] = useState<string | null>(null);
-  const [justSelected, setJustSelected] = useState(false); // Track if user just selected from dropdown
+  const [justSelected, setJustSelected] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Allergy warning state
   const [allergyWarning, setAllergyWarning] = useState<string | null>(null);
   const [isCheckingAllergies, setIsCheckingAllergies] = useState(false);
+  
+  // Drug interaction warning state
+  const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
+  const [isCheckingInteractions, setIsCheckingInteractions] = useState(false);
 
   // Debounced search effect
   useEffect(() => {
@@ -70,15 +76,13 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   }, []);
 
   const handleSelectDrug = (drug: DrugSearchResult) => {
-    // Use displayName for brands (formatted), or regular name for generics
     const medicationName = drug.displayName || drug.name;
     setName(medicationName);
     setSelectedRxcui(drug.rxcui);
     setShowDropdown(false);
-    setJustSelected(true); // Mark that user just selected - prevents dropdown from reopening
+    setJustSelected(true);
     
-    // Auto-fill dosage if we can parse it
-    const extractedDosage = parseDosage(drug.name); // Use original name for parsing
+    const extractedDosage = parseDosage(drug.name);
     if (extractedDosage) {
       setDosage(extractedDosage);
     }
@@ -89,8 +93,8 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     const reason = getMaintenanceReason(medicationName);
     setMaintenanceReason(reason);
     
-    // Check for allergy conflicts
     checkForAllergyConflicts(medicationName);
+    checkForInteractions(medicationName, drug.rxcui);
   };
   
   // Check for allergy conflicts
@@ -99,7 +103,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       setIsCheckingAllergies(true);
       setAllergyWarning(null);
       
-      // Fetch user's allergies
       const allergies = await getAllergies();
       const conflicts = checkAllergyConflicts(medicationName, allergies);
       
@@ -112,6 +115,33 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       console.error('Error checking allergies:', err);
     } finally {
       setIsCheckingAllergies(false);
+    }
+  };
+  
+  /**
+   * Checks for drug interactions with existing medications.
+   * This is informational only and does not constitute medical advice.
+   */
+  const checkForInteractions = async (medicationName: string, rxcui?: string) => {
+    if (!rxcui || isEditing) {
+      setInteractions([]);
+      return;
+    }
+    
+    try {
+      setIsCheckingInteractions(true);
+      setInteractions([]);
+      
+      const foundInteractions = await checkMedicationInteractions(
+        { name: medicationName, rxcui },
+        existingMedications
+      );
+      
+      setInteractions(foundInteractions);
+    } catch (err) {
+      console.error('Error checking interactions:', err);
+    } finally {
+      setIsCheckingInteractions(false);
     }
   };
 
@@ -219,6 +249,39 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
                 </p>
               </div>
             </div>
+          </div>
+        )}
+        
+        {/* Drug Interaction Warnings */}
+        {interactions.length > 0 && (
+          <div className="space-y-3">
+            {interactions.map((interaction, index) => {
+              const badge = getSeverityBadge(interaction.severity);
+              return (
+                <div key={index} className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-bold text-amber-900">Potential Drug Interaction</h4>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      </div>
+                      <p className="text-amber-800 mb-1">
+                        <span className="font-semibold">{interaction.drugB.name}</span>
+                      </p>
+                      <p className="text-amber-700 text-sm mb-3">{interaction.description}</p>
+                      <p className="text-xs text-amber-600 italic">
+                        This information is for educational purposes only. Always consult your healthcare provider about potential drug interactions before starting or stopping any medication.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
