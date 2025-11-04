@@ -1,0 +1,191 @@
+/**
+ * Health condition management for authenticated users via Supabase.
+ */
+
+import type { HealthCondition, HealthConditionFormData } from '@/types';
+import { createClient } from '@/lib/supabase/client';
+import { getCurrentUser } from '@/lib/supabase/auth';
+
+/**
+ * Retrieves all health conditions for an authenticated user from Supabase.
+ */
+async function getHealthConditionsFromSupabase(userId: string): Promise<HealthCondition[]> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('health_conditions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error loading health conditions from Supabase:', error);
+    throw new Error('Failed to load health conditions');
+  }
+
+  return (data || []).map((condition: any) => ({
+    id: condition.id,
+    user_id: condition.user_id,
+    condition: condition.condition,
+    category: condition.category,
+    diagnosed_date: condition.diagnosed_date || undefined,
+    notes: condition.notes || undefined,
+    created_at: condition.created_at,
+    updated_at: condition.updated_at,
+  }));
+}
+
+/**
+ * Adds a new health condition to Supabase.
+ */
+async function addHealthConditionToSupabase(
+  userId: string,
+  data: HealthConditionFormData
+): Promise<HealthCondition> {
+  const supabase = createClient();
+
+  const { data: inserted, error } = (await supabase
+    .from('health_conditions')
+    .insert({
+      user_id: userId,
+      condition: data.condition,
+      category: data.category,
+      diagnosed_date: data.diagnosed_date || null,
+      notes: data.notes || null,
+    } as any)
+    .select()
+    .single()) as any;
+
+  if (error) {
+    console.error('Error adding health condition to Supabase:', error);
+    throw new Error('Failed to add health condition');
+  }
+
+  return {
+    id: inserted.id,
+    user_id: inserted.user_id,
+    condition: inserted.condition,
+    category: inserted.category,
+    diagnosed_date: inserted.diagnosed_date || undefined,
+    notes: inserted.notes || undefined,
+    created_at: inserted.created_at,
+    updated_at: inserted.updated_at,
+  };
+}
+
+/**
+ * Updates an existing health condition in Supabase.
+ */
+async function updateHealthConditionInSupabase(
+  userId: string,
+  id: string,
+  data: Partial<HealthConditionFormData>
+): Promise<HealthCondition> {
+  const supabase = createClient();
+
+  const updateData: any = {};
+  if (data.condition !== undefined) updateData.condition = data.condition;
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.diagnosed_date !== undefined) updateData.diagnosed_date = data.diagnosed_date || null;
+  if (data.notes !== undefined) updateData.notes = data.notes || null;
+
+  const { data: updated, error } = (await supabase
+    .from('health_conditions')
+    // @ts-expect-error - Supabase type inference issue with health_conditions table
+    .update(updateData)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select()
+    .single()) as any;
+
+  if (error || !updated) {
+    console.error('Error updating health condition in Supabase:', error);
+    throw new Error('Failed to update health condition');
+  }
+
+  return {
+    id: updated.id,
+    user_id: updated.user_id,
+    condition: updated.condition,
+    category: updated.category,
+    diagnosed_date: updated.diagnosed_date || undefined,
+    notes: updated.notes || undefined,
+    created_at: updated.created_at,
+    updated_at: updated.updated_at,
+  };
+}
+
+/**
+ * Deletes a health condition from Supabase.
+ */
+async function deleteHealthConditionFromSupabase(userId: string, id: string): Promise<boolean> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from('health_conditions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error deleting health condition from Supabase:', error);
+    throw new Error('Failed to delete health condition');
+  }
+
+  return true;
+}
+
+/**
+ * Retrieves all health conditions for authenticated user.
+ */
+export async function getHealthConditions(): Promise<HealthCondition[]> {
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    throw new Error('Authentication required to access health conditions');
+  }
+  
+  return getHealthConditionsFromSupabase(user.id);
+}
+
+/**
+ * Adds a new health condition for authenticated user.
+ */
+export async function addHealthCondition(data: HealthConditionFormData): Promise<HealthCondition> {
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    throw new Error('Authentication required to add health conditions');
+  }
+  
+  return addHealthConditionToSupabase(user.id, data);
+}
+
+/**
+ * Updates an existing health condition for authenticated user.
+ */
+export async function updateHealthCondition(
+  id: string,
+  data: Partial<HealthConditionFormData>
+): Promise<HealthCondition> {
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    throw new Error('Authentication required to update health conditions');
+  }
+  
+  return updateHealthConditionInSupabase(user.id, id, data);
+}
+
+/**
+ * Deletes a health condition for authenticated user.
+ */
+export async function deleteHealthCondition(id: string): Promise<boolean> {
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    throw new Error('Authentication required to delete health conditions');
+  }
+  
+  return deleteHealthConditionFromSupabase(user.id, id);
+}

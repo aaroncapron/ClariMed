@@ -46,3 +46,32 @@ export interface AllergyFormData {
   severity: AllergySeverity;
   reaction?: string;
 }
+
+export type HealthConditionCategory = 
+  | 'cardiovascular'
+  | 'respiratory'
+  | 'endocrine'
+  | 'gastrointestinal'
+  | 'renal'
+  | 'hepatic'
+  | 'neurological'
+  | 'pregnancy'
+  | 'other';
+
+export interface HealthCondition {
+  id: string; // UUID
+  user_id: string; // Foreign key to auth.users
+  condition: string; // Name of condition (e.g., "Pregnancy", "Hypertension", "Diabetes")
+  category: HealthConditionCategory;
+  diagnosed_date?: string; // ISO date string
+  notes?: string; // Additional context
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+}
+
+export interface HealthConditionFormData {
+  condition: string;
+  category: HealthConditionCategory;
+  diagnosed_date?: string;
+  notes?: string;
+}
