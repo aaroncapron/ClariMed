@@ -1,10 +1,6 @@
 /**
- * Signup Form Component
- * 
- * Handles user registration with email/password
- * Includes validation and error handling
+ * Signup form component for user registration with email and password.
  */
-
 'use client'
 
 import { useState } from 'react'

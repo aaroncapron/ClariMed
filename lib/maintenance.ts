@@ -1,113 +1,68 @@
 /**
- * Maintenance Medication Detection
- * 
- * Uses ATC (Anatomical Therapeutic Chemical) codes and drug classes
- * to auto-suggest whether a medication is a maintenance medication.
- * 
- * Maintenance meds = drugs patient must take regularly to manage chronic conditions
- * (e.g., statins, BP meds, insulin, anticoagulants)
+ * Maintenance medication detection using ATC codes and drug name patterns.
+ * Identifies medications typically taken long-term for chronic conditions.
  */
 
 /**
- * ATC code prefixes that typically indicate maintenance medications
- * Based on WHO ATC classification system
+ * ATC code prefixes indicating maintenance medications (WHO classification).
  */
 const MAINTENANCE_ATC_PREFIXES = [
-  // Cardiovascular System
-  'C01', // Cardiac therapy
-  'C02', // Antihypertensives
-  'C03', // Diuretics
-  'C07', // Beta blocking agents
-  'C08', // Calcium channel blockers
-  'C09', // Agents acting on renin-angiotensin system
-  'C10', // Lipid modifying agents (statins)
-  
-  // Blood and blood forming organs
-  'B01A', // Antithrombotic agents (warfarin, etc.)
-  
-  // Endocrine System
-  'A10', // Drugs used in diabetes (insulin, metformin)
-  'H03', // Thyroid therapy (levothyroxine)
-  
-  // Nervous System
-  'N03', // Antiepileptics
-  'N05A', // Antipsychotics (chronic use)
-  'N06A', // Antidepressants (chronic use)
-  
-  // Respiratory System
-  'R03', // Drugs for obstructive airway diseases (chronic asthma/COPD)
-  
-  // Immunosuppressants
-  'L04', // Immunosuppressants
-  'L01', // Antineoplastic agents (cancer - ongoing treatment)
-  
-  // Musculoskeletal System
-  'M05B', // Drugs affecting bone structure (osteoporosis)
+  'C01',
+  'C02',
+  'C03',
+  'C07',
+  'C08',
+  'C09',
+  'C10',
+  'B01A',
+  'A10',
+  'H03',
+  'N03',
+  'N05A',
+  'N06A',
+  'R03',
+  'L04',
+  'L01',
+  'M05B',
 ];
 
 /**
- * Common drug name patterns that indicate maintenance medications
- * Used as fallback when ATC codes aren't available
+ * Drug name patterns indicating maintenance medications.
+ * Used as fallback when ATC codes are unavailable.
  */
 const MAINTENANCE_DRUG_PATTERNS = [
-  // Statins (cholesterol)
   /statin$/i,
   /atorvastatin|simvastatin|rosuvastatin|pravastatin|lovastatin|fluvastatin/i,
-  
-  // ACE Inhibitors (blood pressure)
-  /pril$/i, // lisinopril, enalapril, ramipril, etc.
+  /pril$/i,
   /lisinopril|enalapril|ramipril|benazepril|captopril|fosinopril|perindopril|quinapril|trandolapril/i,
-  
-  // ARBs (blood pressure)
-  /sartan$/i, // losartan, valsartan, telmisartan, etc.
+  /sartan$/i,
   /losartan|valsartan|telmisartan|irbesartan|olmesartan|candesartan|azilsartan/i,
-  
-  // Beta Blockers (blood pressure, heart)
-  /olol$/i, // metoprolol, atenolol, carvedilol, etc.
+  /olol$/i,
   /metoprolol|atenolol|carvedilol|bisoprolol|propranolol|nadolol|labetalol|nebivolol/i,
-  
-  // Calcium Channel Blockers
-  /dipine$/i, // amlodipine, nifedipine, etc.
+  /dipine$/i,
   /amlodipine|nifedipine|felodipine|diltiazem|verapamil|nicardipine/i,
-  
-  // Diuretics
   /thiazide|furosemide|torsemide|spironolactone|hydrochlorothiazide|chlorthalidone|bumetanide|triamterene|amiloride/i,
-  
-  // Diabetes
   /insulin|metformin|glipizide|glyburide|sitagliptin|empagliflozin|dulaglutide|semaglutide|liraglutide|pioglitazone|glimepiride/i,
-  
-  // Thyroid
   /levothyroxine|synthroid|liothyronine|armour thyroid/i,
-  
-  // Anticoagulants
   /warfarin|apixaban|rivaroxaban|dabigatran|edoxaban/i,
   /coumadin|eliquis|xarelto|pradaxa|savaysa/i,
-  
-  // Antiplatelets
   /clopidogrel|prasugrel|ticagrelor|plavix|aspirin/i,
-  
-  // Immunosuppressants
   /tacrolimus|cyclosporine|azathioprine|mycophenolate/i,
   /prograf|neoral|imuran|cellcept/i,
-  
-  // Antiepileptics
   /levetiracetam|phenytoin|carbamazepine|valproate|lamotrigine/i,
   /keppra|dilantin|tegretol|depakote|lamictal/i,
 ];
 
 /**
- * Check if a medication is likely a maintenance medication
- * based on its therapeutic class (ATC code) or drug name
- * 
- * @param drugName - Name of the medication
- * @param atcCode - Optional ATC code from NIPH/RxNav
- * @returns true if likely maintenance med, false otherwise
+ * Determines if a medication is likely maintenance-based on therapeutic class or name.
+ * @param drugName - Medication name
+ * @param atcCode - Optional ATC code from API
+ * @returns True if likely maintenance medication
  */
 export function isLikelyMaintenanceMed(
   drugName: string,
   atcCode?: string
 ): boolean {
-  // Check ATC code first (most reliable)
   if (atcCode) {
     const isMaintenanceByATC = MAINTENANCE_ATC_PREFIXES.some(prefix => 
       atcCode.toUpperCase().startsWith(prefix)
@@ -115,7 +70,6 @@ export function isLikelyMaintenanceMed(
     if (isMaintenanceByATC) return true;
   }
   
-  // Fallback to drug name pattern matching
   const isMaintenanceByName = MAINTENANCE_DRUG_PATTERNS.some(pattern => 
     pattern.test(drugName)
   );
@@ -124,11 +78,10 @@ export function isLikelyMaintenanceMed(
 }
 
 /**
- * Get a user-friendly explanation of why a drug is suggested as maintenance
- * 
- * @param drugName - Name of the medication
+ * Provides user-friendly explanation for why a drug is suggested as maintenance.
+ * @param drugName - Medication name
  * @param atcCode - Optional ATC code
- * @returns Explanation string
+ * @returns Explanation string or null if not maintenance
  */
 export function getMaintenanceReason(
   drugName: string,
@@ -140,7 +93,6 @@ export function getMaintenanceReason(
   
   const lowerName = drugName.toLowerCase();
   
-  // Check common drug name patterns for specific explanations
   if (/statin/i.test(lowerName) || /atorvastatin|simvastatin|rosuvastatin|pravastatin|lovastatin|fluvastatin/i.test(lowerName)) {
     return 'Cholesterol medication (typically taken long-term)';
   }
@@ -166,7 +118,6 @@ export function getMaintenanceReason(
     return 'Blood thinner - Anticoagulant (typically taken long-term)';
   }
   
-  // Map ATC codes to explanations
   if (atcCode) {
     const code = atcCode.toUpperCase();
     if (code.startsWith('C10')) return 'Cholesterol medication (typically taken long-term)';
@@ -180,6 +131,5 @@ export function getMaintenanceReason(
     if (code.startsWith('L04'))  return 'Immunosuppressant (typically taken long-term)';
   }
   
-  // Generic fallback
   return 'This medication is typically taken regularly for chronic conditions';
 }

@@ -1,14 +1,6 @@
 /**
- * Authentication Helper Functions
- * 
- * Provides easy-to-use functions for common auth operations:
- * - Sign up
- * - Sign in
- * - Sign out
- * - Password reset
- * - Get current user
+ * Authentication helper functions for user management operations.
  */
-
 import { createClient } from './client'
 import type { User } from '@supabase/supabase-js'
 
@@ -37,7 +29,7 @@ export interface AuthResult {
 }
 
 /**
- * Sign up a new user
+ * Sign up a new user.
  */
 export async function signUp({ email, password, firstName, lastName, phone, fullName }: SignUpData): Promise<AuthResult> {
   const supabase = createClient()
@@ -59,7 +51,6 @@ export async function signUp({ email, password, firstName, lastName, phone, full
     return { error: { message: error.message, code: error.code } }
   }
 
-  // Create user profile after successful signup
   if (data.user) {
     const { error: profileError } = await supabase
       .from('user_profiles')
@@ -69,11 +60,10 @@ export async function signUp({ email, password, firstName, lastName, phone, full
         first_name: firstName || null,
         last_name: lastName || null,
         phone: phone || null,
-      } as any) // Type assertion needed until database is fully synced
+      } as any)
 
     if (profileError) {
       console.error('Error creating user profile:', profileError)
-      // Don't fail signup if profile creation fails
     }
   }
 
@@ -81,7 +71,7 @@ export async function signUp({ email, password, firstName, lastName, phone, full
 }
 
 /**
- * Sign in an existing user
+ * Sign in an existing user.
  */
 export async function signIn({ email, password }: SignInData): Promise<AuthResult> {
   const supabase = createClient()
@@ -99,7 +89,7 @@ export async function signIn({ email, password }: SignInData): Promise<AuthResul
 }
 
 /**
- * Sign out the current user
+ * Sign out the current user.
  */
 export async function signOut(): Promise<{ error?: AuthError }> {
   const supabase = createClient()
@@ -114,7 +104,7 @@ export async function signOut(): Promise<{ error?: AuthError }> {
 }
 
 /**
- * Send password reset email
+ * Send password reset email.
  */
 export async function resetPassword(email: string): Promise<{ error?: AuthError }> {
   const supabase = createClient()
@@ -131,7 +121,7 @@ export async function resetPassword(email: string): Promise<{ error?: AuthError 
 }
 
 /**
- * Update user password
+ * Update user password.
  */
 export async function updatePassword(newPassword: string): Promise<{ error?: AuthError }> {
   const supabase = createClient()
@@ -148,7 +138,7 @@ export async function updatePassword(newPassword: string): Promise<{ error?: Aut
 }
 
 /**
- * Get the current user
+ * Get the current user.
  */
 export async function getCurrentUser(): Promise<User | null> {
   const supabase = createClient()
@@ -159,7 +149,7 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /**
- * Get the current session
+ * Get the current session.
  */
 export async function getSession() {
   const supabase = createClient()
@@ -170,8 +160,7 @@ export async function getSession() {
 }
 
 /**
- * Validate password strength
- * Returns an array of error messages, or empty array if valid
+ * Validate password strength. Returns an array of error messages, or empty array if valid.
  */
 export function validatePassword(password: string): string[] {
   const errors: string[] = []
@@ -200,7 +189,7 @@ export function validatePassword(password: string): string[] {
 }
 
 /**
- * Validate email format
+ * Validate email format.
  */
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -208,25 +197,19 @@ export function validateEmail(email: string): boolean {
 }
 
 /**
- * Validate phone number format
- * Accepts various formats and returns normalized E.164 format if valid
+ * Validate phone number format. Accepts various formats and returns normalized E.164 format if valid.
  */
 export function validatePhone(phone: string): { valid: boolean; formatted?: string; error?: string } {
-  // Remove all non-digit characters except + at the start
   const cleaned = phone.replace(/[^\d+]/g, '')
   
-  // Must start with + or be 10 digits (US format)
   if (cleaned.startsWith('+')) {
-    // International format (E.164)
     if (cleaned.length >= 11 && cleaned.length <= 15) {
       return { valid: true, formatted: cleaned }
     }
     return { valid: false, error: 'Invalid international phone number format' }
   } else if (cleaned.length === 10) {
-    // US format without country code
     return { valid: true, formatted: `+1${cleaned}` }
   } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
-    // US format with leading 1
     return { valid: true, formatted: `+${cleaned}` }
   }
   

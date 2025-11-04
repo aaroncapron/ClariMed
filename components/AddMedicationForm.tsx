@@ -83,12 +83,9 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       setDosage(extractedDosage);
     }
     
-    // Check if this is likely a maintenance medication
-    // TODO: Get ATC code from RxNav in future phase
     const isMaintenanceDrug = isLikelyMaintenanceMed(medicationName);
     setIsMaintenance(isMaintenanceDrug);
     
-    // Get explanation for why it's suggested
     const reason = getMaintenanceReason(medicationName);
     setMaintenanceReason(reason);
     
@@ -195,8 +192,10 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
                 >
                   <div className="font-semibold text-gray-900">{drug.displayName || drug.name}</div>
                   <div className="text-sm text-gray-500 mt-1">
-                    {drug.tty === 'SCD' && '🔵 Generic'}
-                    {drug.tty === 'SBD' && '🟢 Brand'}
+                    {drug.tty === 'SCD' && <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1" />}
+                    {drug.tty === 'SCD' && 'Generic'}
+                    {drug.tty === 'SBD' && <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1" />}
+                    {drug.tty === 'SBD' && 'Brand'}
                     {drug.form && ` • ${drug.form}`}
                   </div>
                 </button>
@@ -209,7 +208,9 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
         {allergyWarning && (
           <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
+              <svg className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
               <div className="flex-1">
                 <h4 className="font-bold text-red-900 mb-1">Allergy Alert</h4>
                 <p className="text-red-800">{allergyWarning}</p>
@@ -274,7 +275,8 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
               </p>
               {maintenanceReason && (
                 <p className="text-sm text-blue-700 mt-2 font-medium">
-                  💡 Auto-suggested: {maintenanceReason}
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5" />
+                  Auto-suggested: {maintenanceReason}
                 </p>
               )}
             </div>

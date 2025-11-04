@@ -1,10 +1,6 @@
 /**
- * Authentication Context Provider
- * 
- * Provides authentication state and methods throughout the app.
- * Wraps the entire application to make auth available everywhere.
+ * Authentication context provider for managing user session state across the application.
  */
-
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
@@ -31,7 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
-    // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
@@ -40,13 +35,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getInitialSession()
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null)
         setLoading(false)
 
-        // Refresh the page on sign in/out to update server components
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           router.refresh()
         }
@@ -59,8 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, router])
 
   const handleSignOut = async () => {
+    router.push('/auth/login')
     await supabase.auth.signOut()
-    router.push('/login')
   }
 
   return (

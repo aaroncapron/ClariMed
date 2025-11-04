@@ -1,10 +1,6 @@
 /**
- * Migration Banner Component
- * 
- * Prompts users to import their localStorage medications to Supabase
- * Shows when user logs in and has existing local data
+ * Migration banner component that prompts users to import localStorage medications to Supabase.
  */
-
 'use client'
 
 import { useState } from 'react'
@@ -42,14 +38,14 @@ export default function MigrationBanner({ userId, medicationCount, onComplete }:
   return (
     <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6 shadow-md">
       <div className="flex items-start gap-4">
-        {/* Icon */}
         <div className="flex-shrink-0">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <span className="text-2xl">📦</span>
+            <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+            </svg>
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-blue-900 mb-2">
             Import Your Medications?
@@ -66,7 +62,6 @@ export default function MigrationBanner({ userId, medicationCount, onComplete }:
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={handleImport}
@@ -82,9 +77,7 @@ export default function MigrationBanner({ userId, medicationCount, onComplete }:
                   Importing...
                 </>
               ) : (
-                <>
-                  ✓ Yes, Import (Recommended)
-                </>
+                'Yes, Import (Recommended)'
               )}
             </button>
 
@@ -97,9 +90,8 @@ export default function MigrationBanner({ userId, medicationCount, onComplete }:
             </button>
           </div>
 
-          {/* Info */}
           <p className="mt-3 text-xs text-blue-600">
-            💡 Your medications will be encrypted and only accessible by you. You can export or delete them anytime.
+            Your medications will be encrypted and only accessible by you. You can export or delete them anytime.
           </p>
         </div>
       </div>

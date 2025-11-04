@@ -16,7 +16,6 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
   const [viewMode, setViewModeState] = useState<ViewMode>('clarity');
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load preference from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('viewMode');
     if (saved === 'clarity' || saved === 'clinical') {
@@ -25,7 +24,6 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
     setIsLoaded(true);
   }, []);
 
-  // Save to localStorage when changed
   const setViewMode = (mode: ViewMode) => {
     setViewModeState(mode);
     localStorage.setItem('viewMode', mode);
@@ -35,7 +33,6 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
     setViewMode(viewMode === 'clarity' ? 'clinical' : 'clarity');
   };
 
-  // Prevent flash of wrong content by not rendering until loaded
   if (!isLoaded) {
     return null;
   }

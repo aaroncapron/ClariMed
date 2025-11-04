@@ -1,9 +1,6 @@
 /**
- * Dashboard Page - Authenticated Users Only
- * 
- * Main medication management interface
+ * Dashboard page for authenticated users. Main medication management interface.
  */
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';

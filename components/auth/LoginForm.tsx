@@ -1,10 +1,6 @@
 /**
- * Login Form Component
- * 
- * Handles user authentication with email/password
- * Includes error handling and forgot password link
+ * Login form component for user authentication with email and password.
  */
-
 'use client'
 
 import { useState } from 'react'

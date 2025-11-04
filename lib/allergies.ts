@@ -1,20 +1,16 @@
 /**
- * Allergy Storage Layer
- * 
- * Manages allergy data for authenticated users via Supabase
- * (No localStorage support - allergies require authentication)
+ * Allergy management for authenticated users via Supabase.
  */
 
 import type { Allergy, AllergyFormData } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/supabase/auth';
 
-// =====================================================
-// SUPABASE STORAGE FUNCTIONS
-// =====================================================
-
 /**
- * Get all allergies from Supabase for authenticated user
+ * Retrieves all allergies for an authenticated user from Supabase.
+ * @param userId - The authenticated user's ID
+ * @returns Array of user's allergies
+ * @throws Error if database query fails
  */
 async function getAllergiesFromSupabase(userId: string): Promise<Allergy[]> {
   const supabase = createClient();
@@ -43,7 +39,11 @@ async function getAllergiesFromSupabase(userId: string): Promise<Allergy[]> {
 }
 
 /**
- * Add allergy to Supabase
+ * Adds a new allergy to Supabase.
+ * @param userId - The authenticated user's ID
+ * @param data - Allergy form data
+ * @returns Created allergy with database-generated fields
+ * @throws Error if insertion fails
  */
 async function addAllergyToSupabase(
   userId: string,
@@ -81,7 +81,12 @@ async function addAllergyToSupabase(
 }
 
 /**
- * Update allergy in Supabase
+ * Updates an existing allergy in Supabase.
+ * @param userId - The authenticated user's ID
+ * @param id - Allergy ID to update
+ * @param data - Partial allergy data to update
+ * @returns Updated allergy
+ * @throws Error if update fails
  */
 async function updateAllergyInSupabase(
   userId: string,
@@ -96,9 +101,7 @@ async function updateAllergyInSupabase(
   if (data.severity !== undefined) updateData.severity = data.severity;
   if (data.reaction !== undefined) updateData.reaction = data.reaction || null;
 
-  // Note: TypeScript reports "Argument of type 'any' is not assignable to parameter of type 'never'"
-  // This is a Supabase type inference issue that doesn't occur in storage.ts with identical code.
-  // The suppression is safe as updateData is properly typed and matches the allergies table schema.
+  // Supabase type inference issue with allergies table (safe to ignore)
   const { data: updated, error } = (await supabase
     .from('allergies')
     // @ts-expect-error - Supabase type inference issue with allergies table
@@ -126,7 +129,11 @@ async function updateAllergyInSupabase(
 }
 
 /**
- * Delete allergy from Supabase
+ * Deletes an allergy from Supabase.
+ * @param userId - The authenticated user's ID
+ * @param id - Allergy ID to delete
+ * @returns True if deletion successful
+ * @throws Error if deletion fails
  */
 async function deleteAllergyFromSupabase(userId: string, id: string): Promise<boolean> {
   const supabase = createClient();
@@ -145,12 +152,10 @@ async function deleteAllergyFromSupabase(userId: string, id: string): Promise<bo
   return true;
 }
 
-// =====================================================
-// PUBLIC API (Requires authentication)
-// =====================================================
-
 /**
- * Get all allergies (authenticated users only)
+ * Retrieves all allergies for authenticated user.
+ * @returns Array of allergies
+ * @throws Error if not authenticated
  */
 export async function getAllergies(): Promise<Allergy[]> {
   const user = await getCurrentUser();
@@ -163,7 +168,10 @@ export async function getAllergies(): Promise<Allergy[]> {
 }
 
 /**
- * Add a new allergy
+ * Adds a new allergy for authenticated user.
+ * @param data - Allergy form data
+ * @returns Created allergy
+ * @throws Error if not authenticated
  */
 export async function addAllergy(data: AllergyFormData): Promise<Allergy> {
   const user = await getCurrentUser();
@@ -176,7 +184,11 @@ export async function addAllergy(data: AllergyFormData): Promise<Allergy> {
 }
 
 /**
- * Update an existing allergy
+ * Updates an existing allergy for authenticated user.
+ * @param id - Allergy ID to update
+ * @param data - Partial allergy data to update
+ * @returns Updated allergy
+ * @throws Error if not authenticated
  */
 export async function updateAllergy(
   id: string,
@@ -192,7 +204,10 @@ export async function updateAllergy(
 }
 
 /**
- * Delete an allergy
+ * Deletes an allergy for authenticated user.
+ * @param id - Allergy ID to delete
+ * @returns True if deletion successful
+ * @throws Error if not authenticated
  */
 export async function deleteAllergy(id: string): Promise<boolean> {
   const user = await getCurrentUser();
@@ -205,46 +220,35 @@ export async function deleteAllergy(id: string): Promise<boolean> {
 }
 
 /**
- * Drug class relationships for allergy cross-reactivity
- * Maps allergen keywords to related drug classes that may cause reactions
+ * Drug class cross-reactivity mappings for allergy checking.
+ * Maps allergen keywords to related drugs that may cause reactions.
  */
 const DRUG_CLASS_CROSS_REACTIONS: Record<string, string[]> = {
-  // Penicillins - high cross-reactivity within class
   'penicillin': ['amoxicillin', 'ampicillin', 'penicillin', 'augmentin', 'amoxil', 'unasyn'],
   'amoxicillin': ['penicillin', 'ampicillin', 'augmentin', 'amoxil'],
   'ampicillin': ['penicillin', 'amoxicillin', 'augmentin', 'unasyn'],
-  
-  // Cephalosporins - some cross-reactivity with penicillins (5-10%)
   'cephalosporin': ['cephalexin', 'cefdinir', 'cefuroxime', 'ceftriaxone', 'cefprozil', 'cefazolin'],
   'cephalexin': ['cefdinir', 'cefuroxime', 'cephalosporin', 'keflex'],
   'cefdinir': ['cephalexin', 'cefuroxime', 'cephalosporin'],
-  
-  // Sulfa drugs
   'sulfa': ['sulfamethoxazole', 'trimethoprim', 'bactrim', 'septra', 'sulfadiazine', 'sulfasalazine'],
   'sulfamethoxazole': ['sulfa', 'bactrim', 'septra', 'trimethoprim'],
   'bactrim': ['sulfa', 'sulfamethoxazole', 'trimethoprim', 'septra'],
-  
-  // NSAIDs - high cross-reactivity within class
   'aspirin': ['ibuprofen', 'naproxen', 'nsaid', 'advil', 'motrin', 'aleve', 'diclofenac', 'meloxicam'],
   'ibuprofen': ['aspirin', 'naproxen', 'nsaid', 'advil', 'motrin'],
   'naproxen': ['aspirin', 'ibuprofen', 'nsaid', 'aleve'],
   'nsaid': ['aspirin', 'ibuprofen', 'naproxen', 'diclofenac', 'meloxicam'],
-  
-  // Statins
   'statin': ['atorvastatin', 'simvastatin', 'rosuvastatin', 'pravastatin', 'lipitor', 'crestor'],
   'atorvastatin': ['statin', 'lipitor', 'simvastatin', 'rosuvastatin'],
-  
-  // Macrolides
   'macrolide': ['azithromycin', 'erythromycin', 'clarithromycin', 'zithromax', 'biaxin'],
   'azithromycin': ['macrolide', 'zithromax', 'erythromycin', 'clarithromycin'],
   'erythromycin': ['macrolide', 'azithromycin', 'clarithromycin'],
 };
 
 /**
- * Check for potential allergy conflicts with a medication
- * @param medicationName - Name of the medication to check
+ * Checks medication for potential allergy conflicts.
+ * @param medicationName - Name of medication to check
  * @param allergies - User's allergy list
- * @returns Array of potential conflicts
+ * @returns Array of conflicting allergies
  */
 export function checkAllergyConflicts(
   medicationName: string,
@@ -257,14 +261,10 @@ export function checkAllergyConflicts(
   return allergies.filter(allergy => {
     const allergenLower = allergy.allergen.toLowerCase();
     
-    // Extract core ingredient names by removing dosages, forms, etc.
-    // Look for common drug ingredients (before dosage numbers)
     const extractIngredients = (name: string) => {
-      // Remove everything after dosage (numbers + mg/mcg/etc)
       const beforeDosage = name.split(/\d+\s*(mg|mcg|ml|g|%|unit)/i)[0].trim();
-      // Remove common words and parentheticals
       const cleaned = beforeDosage
-        .replace(/\(.*?\)/g, '') // Remove parentheses
+        .replace(/\(.*?\)/g, '')
         .replace(/oral|tablet|capsule|solution|suspension|injection/gi, '')
         .trim();
       return cleaned;
@@ -273,25 +273,20 @@ export function checkAllergyConflicts(
     const allergenIngredient = extractIngredients(allergenLower);
     const medIngredient = extractIngredients(medLower);
     
-    // Check if any part of the allergen ingredient appears in the medication
-    // Split by common delimiters like '/', '-', 'and'
     const allergenParts = allergenIngredient.split(/[\/\-]|and/i).map(p => p.trim()).filter(p => p.length > 2);
     const medParts = medIngredient.split(/[\/\-]|and/i).map(p => p.trim()).filter(p => p.length > 2);
     
-    // Check for direct ingredient matching
     for (const allergenPart of allergenParts) {
       for (const medPart of medParts) {
         if (medPart.includes(allergenPart) || allergenPart.includes(medPart)) {
           return true;
         }
       }
-      // Also check full medication name (for brand names like Augmentin containing amoxicillin)
       if (medLower.includes(allergenPart)) {
         return true;
       }
     }
     
-    // Check for drug class cross-reactivity
     for (const allergenPart of allergenParts) {
       const crossReactiveClasses = DRUG_CLASS_CROSS_REACTIONS[allergenPart];
       if (crossReactiveClasses) {

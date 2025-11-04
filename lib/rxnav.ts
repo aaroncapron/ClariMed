@@ -1,10 +1,8 @@
 /**
- * RxNav API Wrapper
+ * RxNav API integration for medication lookup and validation.
+ * Uses NIH RxNav REST API (public domain, no API key required).
  * 
- * Interface for NIH RxNav REST API for medication lookup and validation.
- * No API key required - public domain data.
- * 
- * Documentation: https://lhncbc.nlm.nih.gov/RxNav/APIs/
+ * @see https://lhncbc.nlm.nih.gov/RxNav/APIs/
  */
 
 const RXNAV_BASE_URL = 'https://rxnav.nlm.nih.gov/REST';
@@ -13,11 +11,11 @@ export interface DrugSearchResult {
   rxcui: string;
   name: string;
   synonym?: string;
-  tty: 'SCD' | 'SBD' | 'BPCK' | 'GPCK' | 'IN'; // Term Type
+  tty: 'SCD' | 'SBD' | 'BPCK' | 'GPCK' | 'IN';
   language: string;
   suppress: string;
-  displayName?: string; // Formatted name for display
-  form?: string; // Dosage form (Tablet, Capsule, etc.)
+  displayName?: string;
+  form?: string;
 }
 
 export interface DrugProperties {
@@ -31,16 +29,17 @@ export interface DrugProperties {
 }
 
 /**
- * Format brand drug name to put brand first, generic in parentheses
- * Example: "lisinopril 10 MG Oral Tablet [Prinivil]" → "Prinivil (lisinopril) 10 MG Oral Tablet"
+ * Formats brand drug names to display brand first with generic in parentheses.
+ * @param name - Original drug name
+ * @param synonym - Optional synonym
+ * @returns Formatted name or original if no brand brackets found
+ * @example "lisinopril 10 MG [Prinivil]" → "Prinivil (lisinopril) 10 MG"
  */
 function formatBrandName(name: string, synonym?: string): string {
-  // Check if there's a brand name in brackets
   const bracketMatch = name.match(/^(.+?)\s*\[([^\]]+)\]$/);
   
   if (bracketMatch) {
     const [, genericPart, brandName] = bracketMatch;
-    // Extract the ingredient name (before dosage)
     const ingredientMatch = genericPart.match(/^([a-zA-Z\s]+)\s+(.+)$/);
     
     if (ingredientMatch) {
@@ -53,8 +52,9 @@ function formatBrandName(name: string, synonym?: string): string {
 }
 
 /**
- * Extract dosage form from medication name
- * Returns priority order: Tablet=1, Capsule=2, Liquid=3, Other=4
+ * Extracts dosage form priority for sorting (Tablet=1, Capsule=2, Liquid=3, Other=4).
+ * @param name - Medication name
+ * @returns Priority number for sorting
  */
 function getDosageFormPriority(name: string): number {
   const nameLower = name.toLowerCase();
@@ -67,7 +67,7 @@ function getDosageFormPriority(name: string): number {
 }
 
 /**
- * Extract dosage form name for grouping
+ * Extracts dosage form name from medication string.
  */
 function extractDosageForm(name: string): string {
   const formMatch = name.match(/\b(Tablet|Capsule|Liquid|Solution|Suspension|Syrup|Oral Solution|Injection|Cream|Ointment|Gel|Patch)\b/i);
@@ -75,15 +75,15 @@ function extractDosageForm(name: string): string {
 }
 
 /**
- * Search for drugs by name (autocomplete)
- * Returns both generic (SCD) and brand (SBD) results
- * Uses approximateTerm API for better partial matching
+ * Searches for drugs by name using RxNav API.
+ * Returns both generic (SCD) and brand (SBD) results with intelligent fallback.
+ * @param query - Search term (minimum 2 characters)
+ * @returns Array of matching drug results, sorted by relevance
  */
 export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
   if (!query || query.length < 2) return [];
   
   try {
-    // First, try the regular drugs API (works for more complete terms)
     let response = await fetch(
       `${RXNAV_BASE_URL}/drugs.json?name=${encodeURIComponent(query)}`
     );
@@ -95,7 +95,6 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
     let data = await response.json();
     let hasResults = data.drugGroup?.conceptGroup && data.drugGroup.conceptGroup.length > 0;
     
-    // If no results, try approximateTerm API (better for partial matches like "lisin")
     if (!hasResults) {
       response = await fetch(
         `${RXNAV_BASE_URL}/approximateTerm.json?term=${encodeURIComponent(query)}&maxEntries=10`
@@ -108,14 +107,12 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
       const approxData = await response.json();
       const candidates = approxData.approximateGroup?.candidate || [];
       
-      // Get unique RxCUIs (ingredients)
       const rxcuiSet = new Set<string>();
       candidates.forEach((c: any) => {
         if (c.rxcui) rxcuiSet.add(c.rxcui);
       });
       const uniqueRxcuis = Array.from(rxcuiSet).slice(0, 5);
       
-      // For each ingredient, get the drug products (SCD/SBD)
       const allResults: DrugSearchResult[] = [];
       
       for (const rxcui of uniqueRxcuis) {
@@ -141,16 +138,13 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
         }
       }
       
-      // Sort and return
       return sortDrugResults(allResults);
     }
     
-    // Parse results from drugs API
     const results: DrugSearchResult[] = [];
     const conceptGroups = data.drugGroup?.conceptGroup || [];
     
     for (const group of conceptGroups) {
-      // Prioritize SCD (generic) and SBD (brand) results
       if ((group.tty === 'SCD' || group.tty === 'SBD') && group.conceptProperties) {
         for (const drug of group.conceptProperties) {
           results.push({
@@ -170,72 +164,67 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
 }
 
 /**
- * Extract numeric dosage strength for sorting
- * Examples: "10 MG" → 10, "2.5 MG" → 2.5, "100 MCG" → 0.1 (convert to MG)
+ * Extracts and normalizes numeric dosage strength for sorting.
+ * Converts MCG to MG and G to MG for consistent comparison.
+ * @param name - Medication name containing dosage
+ * @returns Normalized dosage value in MG
  */
 function extractDosageStrength(name: string): number {
-  // Match dosage pattern: number + unit
   const match = name.match(/(\d+(?:\.\d+)?)\s*(MG|MCG|G|ML|%|UNIT)/i);
   
-  if (!match) return 0; // No dosage found, sort to beginning
+  if (!match) return 0;
   
   const [, value, unit] = match;
   let numericValue = parseFloat(value);
   
-  // Normalize to MG for comparison
   const unitUpper = unit.toUpperCase();
   if (unitUpper === 'MCG') {
-    numericValue = numericValue / 1000; // Convert MCG to MG
+    numericValue = numericValue / 1000;
   } else if (unitUpper === 'G') {
-    numericValue = numericValue * 1000; // Convert G to MG
+    numericValue = numericValue * 1000;
   }
-  // ML, %, UNIT stay as-is for now
   
   return numericValue;
 }
 
 /**
- * Sort drug results by form, generic/brand, then alphabetically
- * Also deduplicates results based on name (ignoring different packages/manufacturers)
+ * Sorts and deduplicates drug results by form, generic/brand preference, dosage, and name.
+ * @param results - Array of drug search results
+ * @returns Sorted and deduplicated array
  */
 function sortDrugResults(results: DrugSearchResult[]): DrugSearchResult[] {
-  // First, deduplicate by name (same drug name = same drug, different packages)
   const seen = new Set<string>();
   const uniqueResults = results.filter((drug) => {
-    // Normalize the name for comparison (remove extra spaces, lowercase)
     const normalizedName = (drug.displayName || drug.name).toLowerCase().trim();
     
     if (seen.has(normalizedName)) {
-      return false; // Skip duplicate
+      return false;
     }
     
     seen.add(normalizedName);
-    return true; // Keep first occurrence
+    return true;
   });
   
-  // Then sort the unique results
   return uniqueResults.sort((a, b) => {
-    // First: Sort by dosage form (Tablet, Capsule, Liquid, Other)
     const formA = getDosageFormPriority(a.name);
     const formB = getDosageFormPriority(b.name);
     if (formA !== formB) return formA - formB;
     
-    // Second: Generic (SCD) before Brand (SBD) within same form
     if (a.tty === 'SCD' && b.tty === 'SBD') return -1;
     if (a.tty === 'SBD' && b.tty === 'SCD') return 1;
     
-    // Third: Sort by dosage strength (lowest to highest)
     const strengthA = extractDosageStrength(a.name);
     const strengthB = extractDosageStrength(b.name);
     if (strengthA !== strengthB) return strengthA - strengthB;
     
-    // Fourth: Alphabetically by display name (for drugs with same strength)
     return (a.displayName || a.name).localeCompare(b.displayName || b.name);
   });
 }
 
 /**
- * Get drug details by RxCUI
+ * Retrieves detailed drug properties by RxCUI.
+ * @param rxcui - RxNorm concept unique identifier
+ * @returns Drug properties or null if not found
  */
 export async function getDrugDetails(rxcui: string): Promise<DrugProperties | null> {
   try {
@@ -256,7 +245,9 @@ export async function getDrugDetails(rxcui: string): Promise<DrugProperties | nu
 }
 
 /**
- * Get active ingredients for a drug (for interaction checking)
+ * Retrieves active ingredient RxCUIs for a drug product.
+ * @param rxcui - Drug product RxCUI
+ * @returns Array of ingredient RxCUIs
  */
 export async function getIngredients(rxcui: string): Promise<string[]> {
   try {
@@ -287,8 +278,9 @@ export async function getIngredients(rxcui: string): Promise<string[]> {
 }
 
 /**
- * Check drug interactions between ingredient RxCUIs
- * Note: Requires ingredient RxCUIs, not drug product RxCUIs
+ * Checks for drug interactions between ingredients.
+ * @param ingredientRxcuis - Array of ingredient RxCUIs (not drug product RxCUIs)
+ * @returns Array of interaction groups
  */
 export async function checkInteractions(ingredientRxcuis: string[]) {
   if (ingredientRxcuis.length < 2) return [];
@@ -312,7 +304,9 @@ export async function checkInteractions(ingredientRxcuis: string[]) {
 }
 
 /**
- * Get spelling suggestions for misspelled drug names
+ * Retrieves spelling suggestions for potentially misspelled drug names.
+ * @param query - Potentially misspelled drug name
+ * @returns Array of suggested spellings
  */
 export async function getSpellingSuggestions(query: string): Promise<string[]> {
   try {
@@ -333,8 +327,10 @@ export async function getSpellingSuggestions(query: string): Promise<string[]> {
 }
 
 /**
- * Parse dosage from medication name
- * Example: "lisinopril 10 MG Oral Tablet" → "10 MG"
+ * Parses dosage from medication name.
+ * @param medicationName - Full medication name
+ * @returns Dosage string or empty string if not found
+ * @example parseDosage("lisinopril 10 MG Oral Tablet") // "10 MG"
  */
 export function parseDosage(medicationName: string): string {
   const match = medicationName.match(/(\d+(?:\.\d+)?\s*(?:MG|ML|MCG|G|%|UNIT))/i);
@@ -342,8 +338,10 @@ export function parseDosage(medicationName: string): string {
 }
 
 /**
- * Parse form from medication name
- * Example: "lisinopril 10 MG Oral Tablet" → "Oral Tablet"
+ * Parses dosage form from medication name.
+ * @param medicationName - Full medication name
+ * @returns Dosage form or empty string if not found
+ * @example parseForm("lisinopril 10 MG Oral Tablet") // "Oral Tablet"
  */
 export function parseForm(medicationName: string): string {
   const match = medicationName.match(/(?:MG|ML|MCG|G|%|UNIT)\s+(.+?)$/i);

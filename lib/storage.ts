@@ -1,11 +1,7 @@
 /**
- * Unified Storage Layer for Medications
- * 
- * Automatically routes to appropriate storage:
- * - Authenticated users: Supabase (cloud sync)
- * - Guest users: localStorage (device only)
- * 
- * Handles migration from localStorage to Supabase
+ * Medication storage layer with automatic routing.
+ * Routes to Supabase for authenticated users or localStorage for guests.
+ * Handles data migration between storage backends.
  */
 
 import type { Medication } from '@/types';
@@ -14,12 +10,11 @@ import { getCurrentUser } from '@/lib/supabase/auth';
 
 const STORAGE_KEY = 'clarimed_medications';
 
-// =====================================================
-// SUPABASE STORAGE FUNCTIONS (Authenticated Users)
-// =====================================================
-
 /**
- * Get medications from Supabase for authenticated user
+ * Retrieves all medications for an authenticated user from Supabase.
+ * @param userId - The authenticated user's ID
+ * @returns Array of medications
+ * @throws Error if database query fails
  */
 async function getMedicationsFromSupabase(userId: string): Promise<Medication[]> {
   const supabase = createClient();
@@ -53,7 +48,11 @@ async function getMedicationsFromSupabase(userId: string): Promise<Medication[]>
 }
 
 /**
- * Add medication to Supabase
+ * Adds a new medication to Supabase for an authenticated user.
+ * @param userId - The authenticated user's ID
+ * @param data - Medication data without id and timestamps
+ * @returns The created medication with database-generated fields
+ * @throws Error if insertion fails
  */
 async function addMedicationToSupabase(
   userId: string,
@@ -101,7 +100,12 @@ async function addMedicationToSupabase(
 }
 
 /**
- * Update medication in Supabase
+ * Updates an existing medication in Supabase.
+ * @param userId - The authenticated user's ID
+ * @param id - Medication ID to update
+ * @param data - Partial medication data to update
+ * @returns Updated medication
+ * @throws Error if update fails or medication not found
  */
 async function updateMedicationInSupabase(
   userId: string,
@@ -121,8 +125,8 @@ async function updateMedicationInSupabase(
   if (data.therapeuticClass !== undefined) updateData.therapeutic_class = data.therapeuticClass || null;
   if (data.ingredients !== undefined) updateData.ingredients = data.ingredients || null;
 
-  const { data: updated, error } = (await supabase
-    .from('medications')
+  const { data: updated, error } = (await (supabase
+    .from('medications') as any)
     .update(updateData)
     .eq('id', id)
     .eq('user_id', userId) // Security: ensure user owns this medication
@@ -152,7 +156,11 @@ async function updateMedicationInSupabase(
 }
 
 /**
- * Delete medication from Supabase
+ * Deletes a medication from Supabase.
+ * @param userId - The authenticated user's ID
+ * @param id - Medication ID to delete
+ * @returns True if deletion successful
+ * @throws Error if deletion fails
  */
 async function deleteMedicationFromSupabase(userId: string, id: string): Promise<boolean> {
   const supabase = createClient();
@@ -171,12 +179,10 @@ async function deleteMedicationFromSupabase(userId: string, id: string): Promise
   return true;
 }
 
-// =====================================================
-// LOCALSTORAGE FUNCTIONS (Guest Users)
-// =====================================================
-
 /**
- * Get all medications from localStorage
+ * Retrieves all medications from browser localStorage.
+ * Used for guest users who are not authenticated.
+ * @returns Array of medications from localStorage
  */
 function getMedicationsFromLocalStorage(): Medication[] {
   if (typeof window === 'undefined') return [];
@@ -200,7 +206,8 @@ function getMedicationsFromLocalStorage(): Medication[] {
 }
 
 /**
- * Save medications to localStorage
+ * Saves medication array to browser localStorage.
+ * @param medications - Array of medications to save
  */
 function saveMedicationsToLocalStorage(medications: Medication[]): void {
   if (typeof window === 'undefined') return;
@@ -214,7 +221,9 @@ function saveMedicationsToLocalStorage(medications: Medication[]): void {
 }
 
 /**
- * Add medication to localStorage
+ * Adds a new medication to localStorage.
+ * @param data - Medication data without id and timestamps
+ * @returns The created medication with generated id
  */
 function addMedicationToLocalStorage(
   data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>
@@ -235,7 +244,10 @@ function addMedicationToLocalStorage(
 }
 
 /**
- * Update medication in localStorage
+ * Updates an existing medication in localStorage.
+ * @param id - Medication ID to update
+ * @param data - Partial medication data to update
+ * @returns Updated medication or null if not found
  */
 function updateMedicationInLocalStorage(
   id: string,
@@ -257,7 +269,9 @@ function updateMedicationInLocalStorage(
 }
 
 /**
- * Delete medication from localStorage
+ * Deletes a medication from localStorage.
+ * @param id - Medication ID to delete
+ * @returns True if deletion successful, false if not found
  */
 function deleteMedicationFromLocalStorage(id: string): boolean {
   const medications = getMedicationsFromLocalStorage();
@@ -269,27 +283,24 @@ function deleteMedicationFromLocalStorage(id: string): boolean {
   return true;
 }
 
-// =====================================================
-// PUBLIC API (Auto-routes to correct storage)
-// =====================================================
-
 /**
- * Get all medications (routes to Supabase or localStorage based on auth)
+ * Retrieves all medications, automatically routing to appropriate storage backend.
+ * @returns Array of medications
  */
 export async function getMedications(): Promise<Medication[]> {
   const user = await getCurrentUser();
   
   if (user) {
-    // Authenticated user → Use Supabase
     return getMedicationsFromSupabase(user.id);
   } else {
-    // Guest user → Use localStorage
     return getMedicationsFromLocalStorage();
   }
 }
 
 /**
- * Add a new medication
+ * Adds a new medication, automatically routing to appropriate storage backend.
+ * @param data - Medication data without id and timestamps
+ * @returns The created medication
  */
 export async function addMedication(
   data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>
@@ -297,16 +308,17 @@ export async function addMedication(
   const user = await getCurrentUser();
   
   if (user) {
-    // Authenticated user → Save to Supabase
     return addMedicationToSupabase(user.id, data);
   } else {
-    // Guest user → Save to localStorage
     return addMedicationToLocalStorage(data);
   }
 }
 
 /**
- * Update an existing medication
+ * Updates an existing medication, automatically routing to appropriate storage backend.
+ * @param id - Medication ID to update
+ * @param data - Partial medication data to update
+ * @returns Updated medication or null if not found
  */
 export async function updateMedication(
   id: string,
@@ -315,41 +327,36 @@ export async function updateMedication(
   const user = await getCurrentUser();
   
   if (user) {
-    // Authenticated user → Update in Supabase
     return updateMedicationInSupabase(user.id, id, data);
   } else {
-    // Guest user → Update in localStorage
     return updateMedicationInLocalStorage(id, data);
   }
 }
 
 /**
- * Delete a medication
+ * Deletes a medication, automatically routing to appropriate storage backend.
+ * @param id - Medication ID to delete
+ * @returns True if deletion successful
  */
 export async function deleteMedication(id: string): Promise<boolean> {
   const user = await getCurrentUser();
   
   if (user) {
-    // Authenticated user → Delete from Supabase
     return deleteMedicationFromSupabase(user.id, id);
   } else {
-    // Guest user → Delete from localStorage
     return deleteMedicationFromLocalStorage(id);
   }
 }
 
-// =====================================================
-// MIGRATION UTILITIES
-// =====================================================
-
 /**
- * Check if user needs to migrate from localStorage to Supabase
+ * Checks if user has localStorage medications that need migration to Supabase.
+ * @param userId - The authenticated user's ID
+ * @returns Object indicating if migration is needed and medication count
  */
 export async function checkMigrationNeeded(userId: string): Promise<{
   needed: boolean;
   count: number;
 }> {
-  // Check if user has already migrated or skipped
   const supabase = createClient();
   const { data: profile } = (await supabase
     .from('user_profiles')
@@ -361,7 +368,6 @@ export async function checkMigrationNeeded(userId: string): Promise<{
     return { needed: false, count: 0 };
   }
 
-  // Check if localStorage has medications
   const localMeds = getMedicationsFromLocalStorage();
   
   return {
@@ -371,7 +377,10 @@ export async function checkMigrationNeeded(userId: string): Promise<{
 }
 
 /**
- * Migrate medications from localStorage to Supabase
+ * Migrates all localStorage medications to Supabase for an authenticated user.
+ * Clears localStorage after successful migration.
+ * @param userId - The authenticated user's ID
+ * @returns Object with success status, import count, and optional error message
  */
 export async function migrateMedicationsToSupabase(userId: string): Promise<{
   success: boolean;
@@ -385,7 +394,6 @@ export async function migrateMedicationsToSupabase(userId: string): Promise<{
       return { success: true, imported: 0 };
     }
 
-    // Import all medications to Supabase
     const supabase = createClient();
     const medicationsToInsert = localMeds.map(med => ({
       user_id: userId,
@@ -409,17 +417,14 @@ export async function migrateMedicationsToSupabase(userId: string): Promise<{
       return { success: false, imported: 0, error: error.message };
     }
 
-    // Mark migration as complete
     const updateData: any = {
       migration_completed: true,
       migration_completed_at: new Date().toISOString(),
     };
-    await (supabase
-      .from('user_profiles')
+    await ((supabase.from('user_profiles') as any)
       .update(updateData)
       .eq('id', userId)) as any;
 
-    // Clear localStorage
     clearLocalStorage();
 
     return { success: true, imported: localMeds.length };
@@ -434,19 +439,19 @@ export async function migrateMedicationsToSupabase(userId: string): Promise<{
 }
 
 /**
- * Mark migration as skipped (user chose not to import)
+ * Marks migration as skipped in user profile.
+ * @param userId - The authenticated user's ID
  */
 export async function skipMigration(userId: string): Promise<void> {
   const supabase = createClient();
   const updateData: any = { migration_skipped: true };
-  await (supabase
-    .from('user_profiles')
+  await ((supabase.from('user_profiles') as any)
     .update(updateData)
     .eq('id', userId)) as any;
 }
 
 /**
- * Clear localStorage medications (used after successful migration)
+ * Clears all medication data from browser localStorage.
  */
 export function clearLocalStorage(): void {
   if (typeof window === 'undefined') return;
@@ -454,14 +459,14 @@ export function clearLocalStorage(): void {
 }
 
 /**
- * Get localStorage medications (for migration preview)
+ * Gets medications from localStorage for migration preview.
+ * @returns Array of medications from localStorage
  */
 export function getLocalStorageMedications(): Medication[] {
   return getMedicationsFromLocalStorage();
 }
 
 /**
- * Clear all medications (useful for testing)
  * @deprecated Use clearLocalStorage instead
  */
 export function clearAllMedications(): void {
