@@ -233,10 +233,12 @@ const DRUG_CLASS_CROSS_REACTIONS: Record<string, string[]> = {
   'sulfa': ['sulfamethoxazole', 'trimethoprim', 'bactrim', 'septra', 'sulfadiazine', 'sulfasalazine'],
   'sulfamethoxazole': ['sulfa', 'bactrim', 'septra', 'trimethoprim'],
   'bactrim': ['sulfa', 'sulfamethoxazole', 'trimethoprim', 'septra'],
-  'aspirin': ['ibuprofen', 'naproxen', 'nsaid', 'advil', 'motrin', 'aleve', 'diclofenac', 'meloxicam'],
-  'ibuprofen': ['aspirin', 'naproxen', 'nsaid', 'advil', 'motrin'],
-  'naproxen': ['aspirin', 'ibuprofen', 'nsaid', 'aleve'],
-  'nsaid': ['aspirin', 'ibuprofen', 'naproxen', 'diclofenac', 'meloxicam'],
+  'aspirin': ['ibuprofen', 'naproxen', 'nsaid', 'advil', 'motrin', 'aleve', 'diclofenac', 'meloxicam', 'flurbiprofen', 'ansaid'],
+  'ibuprofen': ['aspirin', 'naproxen', 'nsaid', 'advil', 'motrin', 'flurbiprofen'],
+  'naproxen': ['aspirin', 'ibuprofen', 'nsaid', 'aleve', 'flurbiprofen'],
+  'flurbiprofen': ['aspirin', 'ibuprofen', 'naproxen', 'nsaid', 'ansaid'],
+  'ansaid': ['aspirin', 'ibuprofen', 'naproxen', 'nsaid', 'flurbiprofen'],
+  'nsaid': ['aspirin', 'ibuprofen', 'naproxen', 'diclofenac', 'meloxicam', 'flurbiprofen', 'ansaid'],
   'statin': ['atorvastatin', 'simvastatin', 'rosuvastatin', 'pravastatin', 'lipitor', 'crestor'],
   'atorvastatin': ['statin', 'lipitor', 'simvastatin', 'rosuvastatin'],
   'macrolide': ['azithromycin', 'erythromycin', 'clarithromycin', 'zithromax', 'biaxin'],
@@ -263,18 +265,46 @@ export function checkAllergyConflicts(
     
     const extractIngredients = (name: string) => {
       const beforeDosage = name.split(/\d+\s*(mg|mcg|ml|g|%|unit)/i)[0].trim();
-      const cleaned = beforeDosage
+      
+      // Extract text from both parentheses () and brackets []
+      // Example: Handles "Ansaid (flurbiprofen)" and "Supra Sulfa [sulfamethazine]"
+      const extractedContent: string[] = [];
+      
+      // Extract from parentheses
+      const parenthesesMatches = beforeDosage.match(/\(([^)]+)\)/g);
+      if (parenthesesMatches) {
+        parenthesesMatches.forEach(match => {
+          const content = match.replace(/[()]/g, '').trim();
+          if (content) extractedContent.push(content);
+        });
+      }
+      
+      // Extract from brackets
+      const bracketMatches = beforeDosage.match(/\[([^\]]+)\]/g);
+      if (bracketMatches) {
+        bracketMatches.forEach(match => {
+          const content = match.replace(/[\[\]]/g, '').trim();
+          if (content) extractedContent.push(content);
+        });
+      }
+      
+      // Remove parentheses, brackets, and form descriptions from main text
+      const withoutEnclosures = beforeDosage
         .replace(/\(.*?\)/g, '')
+        .replace(/\[.*?\]/g, '')
         .replace(/oral|tablet|capsule|solution|suspension|injection/gi, '')
         .trim();
-      return cleaned;
+      
+      // Combine all parts: main text + content from parentheses + content from brackets
+      const allParts = [withoutEnclosures, ...extractedContent].join(' ');
+      return allParts;
     };
     
     const allergenIngredient = extractIngredients(allergenLower);
     const medIngredient = extractIngredients(medLower);
     
-    const allergenParts = allergenIngredient.split(/[\/\-]|and/i).map(p => p.trim()).filter(p => p.length > 2);
-    const medParts = medIngredient.split(/[\/\-]|and/i).map(p => p.trim()).filter(p => p.length > 2);
+    const allergenParts = allergenIngredient.split(/[\/\-\s]|and/i).map(p => p.trim()).filter(p => p.length > 2);
+    const medParts = medIngredient.split(/[\/\-\s]|and/i).map(p => p.trim()).filter(p => p.length > 2);
     
     for (const allergenPart of allergenParts) {
       for (const medPart of medParts) {
