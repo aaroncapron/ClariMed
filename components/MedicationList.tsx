@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react';
 import type { Medication } from '@/types';
 import { useViewMode } from '@/contexts/ViewModeContext';
 import { checkMedicationInteractions, type DrugInteraction } from '@/lib/interactions';
+import { checkContraindications, type ContraindicationWarning } from '@/lib/contraindications';
+import { getHealthConditions } from '@/lib/health-conditions';
 
 interface MedicationListProps {
   medications: Medication[];
@@ -18,6 +20,7 @@ interface MedicationListProps {
 export default function MedicationList({ medications, onDelete, onEdit }: MedicationListProps) {
   const { viewMode } = useViewMode();
   const [medicationInteractions, setMedicationInteractions] = useState<Map<string, DrugInteraction[]>>(new Map());
+  const [medicationContraindications, setMedicationContraindications] = useState<Map<string, ContraindicationWarning[]>>(new Map());
 
   useEffect(() => {
     async function loadInteractions() {
@@ -43,26 +46,72 @@ export default function MedicationList({ medications, onDelete, onEdit }: Medica
     }
   }, [medications]);
 
+  useEffect(() => {
+    async function loadContraindications() {
+      const contraindicationMap = new Map<string, ContraindicationWarning[]>();
+      
+      try {
+        const healthConditions = await getHealthConditions();
+        
+        if (healthConditions.length > 0) {
+          for (const med of medications) {
+            const warnings = checkContraindications(med, healthConditions);
+            if (warnings.length > 0) {
+              contraindicationMap.set(med.id, warnings);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error loading contraindications:', err);
+      }
+      
+      setMedicationContraindications(contraindicationMap);
+    }
+
+    if (medications.length > 0) {
+      loadContraindications();
+    } else {
+      setMedicationContraindications(new Map());
+    }
+  }, [medications]);
+
   if (viewMode === 'clarity') {
-    return <ClarityView medications={medications} onDelete={onDelete} onEdit={onEdit} medicationInteractions={medicationInteractions} />;
+    return <ClarityView 
+      medications={medications} 
+      onDelete={onDelete} 
+      onEdit={onEdit} 
+      medicationInteractions={medicationInteractions}
+      medicationContraindications={medicationContraindications}
+    />;
   }
 
-  return <ClinicalView medications={medications} onDelete={onDelete} onEdit={onEdit} medicationInteractions={medicationInteractions} />;
+  return <ClinicalView 
+    medications={medications} 
+    onDelete={onDelete} 
+    onEdit={onEdit} 
+    medicationInteractions={medicationInteractions}
+    medicationContraindications={medicationContraindications}
+  />;
 }
 
 interface ViewProps extends MedicationListProps {
   medicationInteractions: Map<string, DrugInteraction[]>;
+  medicationContraindications: Map<string, ContraindicationWarning[]>;
 }
 
 // Clarity Mode: Simple, clean, minimal view
-function ClarityView({ medications, onDelete, onEdit, medicationInteractions }: ViewProps) {
+function ClarityView({ medications, onDelete, onEdit, medicationInteractions, medicationContraindications }: ViewProps) {
   return (
     <div className="space-y-4">
       {medications.map((med) => {
         const interactions = medicationInteractions.get(med.id) || [];
+        const contraindications = medicationContraindications.get(med.id) || [];
         const hasInteractions = interactions.length > 0;
-        const hasCritical = interactions.some(i => i.severity === 'critical');
-        const hasMajor = interactions.some(i => i.severity === 'major');
+        const hasContraindications = contraindications.length > 0;
+        const hasCritical = interactions.some(i => i.severity === 'critical') || 
+                           contraindications.some(c => c.severity === 'critical');
+        const hasMajor = interactions.some(i => i.severity === 'major') || 
+                        contraindications.some(c => c.severity === 'major');
         
         return (
           <div
@@ -75,7 +124,7 @@ function ClarityView({ medications, onDelete, onEdit, medicationInteractions }: 
           >
             <div className="flex justify-between items-center gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <h3 className="text-xl font-bold text-gray-900">
                     {med.name}
                   </h3>
@@ -88,6 +137,19 @@ function ClarityView({ medications, onDelete, onEdit, medicationInteractions }: 
                         : 'bg-yellow-100 text-yellow-800 border border-yellow-300'
                     }`}>
                       {interactions.length} interaction{interactions.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {hasContraindications && (
+                    <span className={`px-2 py-1 text-xs font-bold rounded border ${
+                      contraindications.some(c => c.severity === 'critical')
+                        ? 'bg-red-100 text-red-800 border-red-300' 
+                        : contraindications.some(c => c.severity === 'major')
+                        ? 'bg-orange-100 text-orange-800 border-orange-300'
+                        : contraindications.some(c => c.severity === 'moderate')
+                        ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                        : 'bg-blue-100 text-blue-800 border-blue-300'
+                    }`}>
+                      {contraindications.length} health alert{contraindications.length !== 1 ? 's' : ''}
                     </span>
                   )}
                 </div>
@@ -118,8 +180,9 @@ function ClarityView({ medications, onDelete, onEdit, medicationInteractions }: 
 }
 
 // Clinical Mode: Detailed, comprehensive view with all information
-function ClinicalView({ medications, onDelete, onEdit, medicationInteractions }: ViewProps) {
+function ClinicalView({ medications, onDelete, onEdit, medicationInteractions, medicationContraindications }: ViewProps) {
   const [expandedInteractions, setExpandedInteractions] = useState<Set<string>>(new Set());
+  const [expandedContraindications, setExpandedContraindications] = useState<Set<string>>(new Set());
 
   const toggleInteractions = (medId: string) => {
     const newExpanded = new Set(expandedInteractions);
@@ -131,14 +194,29 @@ function ClinicalView({ medications, onDelete, onEdit, medicationInteractions }:
     setExpandedInteractions(newExpanded);
   };
 
+  const toggleContraindications = (medId: string) => {
+    const newExpanded = new Set(expandedContraindications);
+    if (newExpanded.has(medId)) {
+      newExpanded.delete(medId);
+    } else {
+      newExpanded.add(medId);
+    }
+    setExpandedContraindications(newExpanded);
+  };
+
   return (
     <div className="space-y-6">
       {medications.map((med) => {
         const interactions = medicationInteractions.get(med.id) || [];
+        const contraindications = medicationContraindications.get(med.id) || [];
         const hasInteractions = interactions.length > 0;
-        const isExpanded = expandedInteractions.has(med.id);
-        const criticalCount = interactions.filter(i => i.severity === 'critical').length;
-        const majorCount = interactions.filter(i => i.severity === 'major').length;
+        const hasContraindications = contraindications.length > 0;
+        const isInteractionsExpanded = expandedInteractions.has(med.id);
+        const isContraindicationsExpanded = expandedContraindications.has(med.id);
+        const criticalCount = interactions.filter(i => i.severity === 'critical').length +
+                             contraindications.filter(c => c.severity === 'critical').length;
+        const majorCount = interactions.filter(i => i.severity === 'major').length +
+                          contraindications.filter(c => c.severity === 'major').length;
 
         return (
           <div
@@ -188,9 +266,26 @@ function ClinicalView({ medications, onDelete, onEdit, medicationInteractions }:
                       {interactions.length} interaction{interactions.length !== 1 ? 's' : ''}
                     </button>
                   )}
+                  {hasContraindications && (
+                    <button
+                      onClick={() => toggleContraindications(med.id)}
+                      className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full border transition-all ${
+                        contraindications.some(c => c.severity === 'critical')
+                          ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                          : contraindications.some(c => c.severity === 'major')
+                          ? 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100'
+                          : 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100'
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      {contraindications.length} health alert{contraindications.length !== 1 ? 's' : ''}
+                    </button>
+                  )}
                 </div>
                 
-                {hasInteractions && isExpanded && (
+                {hasInteractions && isInteractionsExpanded && (
                   <div className="mb-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-3">
                     <h4 className="font-bold text-amber-900 flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -225,6 +320,45 @@ function ClinicalView({ medications, onDelete, onEdit, medicationInteractions }:
                     })}
                     <p className="text-xs text-amber-700 pt-2">
                       Consult your healthcare provider about these interactions.
+                    </p>
+                  </div>
+                )}
+
+                {hasContraindications && isContraindicationsExpanded && (
+                  <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-xl space-y-3">
+                    <h4 className="font-bold text-red-900 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Health Condition Alerts
+                    </h4>
+                    {contraindications.map((warning, idx) => {
+                      const badge = (() => {
+                        switch (warning.severity) {
+                          case 'critical': return { color: 'bg-red-100 text-red-800 border-red-300', label: 'Critical' };
+                          case 'major': return { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'Major' };
+                          case 'moderate': return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', label: 'Moderate' };
+                          case 'minor': return { color: 'bg-blue-100 text-blue-800 border-blue-300', label: 'Minor' };
+                          default: return { color: 'bg-gray-100 text-gray-800 border-gray-300', label: 'Unknown' };
+                        }
+                      })();
+                      
+                      return (
+                        <div key={idx} className="p-3 bg-white border border-red-200 rounded-lg">
+                          <div className="flex items-start gap-2 mb-2">
+                            <span className={`px-2 py-1 text-xs font-bold rounded border ${badge.color}`}>
+                              {badge.label}
+                            </span>
+                            <p className="font-semibold text-red-900 text-sm">
+                              Condition: {warning.condition}
+                            </p>
+                          </div>
+                          <p className="text-sm text-red-800">{warning.description}</p>
+                        </div>
+                      );
+                    })}
+                    <p className="text-xs text-red-700 pt-2">
+                      This is informational only. Consult your healthcare provider about your health conditions and medications.
                     </p>
                   </div>
                 )}

@@ -17,7 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Category-based condition organization (cardiovascular, respiratory, endocrine, pregnancy, etc.)
 - Contraindication checking when adding medications
 - Health condition alerts displayed in confirmation dialog
+- **Contraindication warnings displayed on dashboard for existing medications**
+- Real-time checking of medications against user's health conditions
 - Severity-based warnings: Critical, Major, Moderate, Minor
+
+**Dashboard Safety Display**
+- Health condition alert badges shown in both clarity and clinical modes
+- Expandable contraindication details in clinical mode
+- Color-coded severity indicators (red for critical, orange for major, etc.)
+- Combines interaction warnings and health condition alerts
+- Automatic checking when health conditions are added or updated
 
 **Safety Enhancements**
 - Pregnancy contraindications: ACE inhibitors, statins, warfarin
