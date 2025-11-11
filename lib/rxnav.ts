@@ -222,6 +222,45 @@ function sortDrugResults(results: DrugSearchResult[]): DrugSearchResult[] {
 }
 
 /**
+ * Retrieves related concepts (like ingredients, therapeutic classes) for a given RxCUI.
+ * @param rxcui - The RxNorm Concept Unique Identifier.
+ * @param tty - A list of term types to filter by (e.g., 'IN' for ingredient, 'TC' for therapeutic class).
+ * @returns A promise that resolves to an array of related concepts.
+ */
+export async function getRelatedConcepts(
+  rxcui: string,
+  tty: string[]
+): Promise<DrugProperties[]> {
+  if (!rxcui || tty.length === 0) return [];
+
+  try {
+    const ttyString = tty.join('+');
+    const response = await fetch(
+      `${RXNAV_BASE_URL}/rxcui/${rxcui}/related.json?tty=${ttyString}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`RxNav related concepts API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const concepts: DrugProperties[] = [];
+    const groups = data.relatedGroup?.conceptGroup || [];
+
+    for (const group of groups) {
+      if (tty.includes(group.tty) && group.conceptProperties) {
+        concepts.push(...group.conceptProperties);
+      }
+    }
+
+    return concepts;
+  } catch (error) {
+    console.error('RxNav related concepts error:', error);
+    return [];
+  }
+}
+
+/**
  * Retrieves detailed drug properties by RxCUI.
  * @param rxcui - RxNorm concept unique identifier
  * @returns Drug properties or null if not found

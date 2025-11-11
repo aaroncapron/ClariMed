@@ -62,11 +62,12 @@ export interface HealthCondition {
   id: string; // UUID
   user_id: string; // Foreign key to auth.users
   condition: string; // Name of condition (e.g., "Pregnancy", "Hypertension", "Diabetes")
+  rxcui?: string; // Add RxCUI for API-based checks
   category: HealthConditionCategory;
   diagnosed_date?: string; // ISO date string
   notes?: string; // Additional context
-  created_at: string; // ISO date string
-  updated_at: string; // ISO date string
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }
 
 export interface HealthConditionFormData {

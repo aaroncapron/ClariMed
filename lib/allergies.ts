@@ -2,9 +2,10 @@
  * Allergy management for authenticated users via Supabase.
  */
 
-import type { Allergy, AllergyFormData } from '@/types';
+import type { Allergy, AllergyFormData, Medication } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/supabase/auth';
+import { getIngredients, getRelatedConcepts } from './rxnav';
 
 /**
  * Retrieves all allergies for an authenticated user from Supabase.
@@ -220,114 +221,59 @@ export async function deleteAllergy(id: string): Promise<boolean> {
 }
 
 /**
- * Drug class cross-reactivity mappings for allergy checking.
- * Maps allergen keywords to related drugs that may cause reactions.
+ * Checks for potential allergy conflicts using the RxNav API for cross-reactivity.
+ * @param medication - The medication being added.
+ * @param allergies - The user's list of allergies.
+ * @returns An array of conflicting allergies with detailed conflict information.
  */
-const DRUG_CLASS_CROSS_REACTIONS: Record<string, string[]> = {
-  'penicillin': ['amoxicillin', 'ampicillin', 'penicillin', 'augmentin', 'amoxil', 'unasyn'],
-  'amoxicillin': ['penicillin', 'ampicillin', 'augmentin', 'amoxil'],
-  'ampicillin': ['penicillin', 'amoxicillin', 'augmentin', 'unasyn'],
-  'cephalosporin': ['cephalexin', 'cefdinir', 'cefuroxime', 'ceftriaxone', 'cefprozil', 'cefazolin'],
-  'cephalexin': ['cefdinir', 'cefuroxime', 'cephalosporin', 'keflex'],
-  'cefdinir': ['cephalexin', 'cefuroxime', 'cephalosporin'],
-  'sulfa': ['sulfamethoxazole', 'trimethoprim', 'bactrim', 'septra', 'sulfadiazine', 'sulfasalazine'],
-  'sulfamethoxazole': ['sulfa', 'bactrim', 'septra', 'trimethoprim'],
-  'bactrim': ['sulfa', 'sulfamethoxazole', 'trimethoprim', 'septra'],
-  'aspirin': ['ibuprofen', 'naproxen', 'nsaid', 'advil', 'motrin', 'aleve', 'diclofenac', 'meloxicam', 'flurbiprofen', 'ansaid'],
-  'ibuprofen': ['aspirin', 'naproxen', 'nsaid', 'advil', 'motrin', 'flurbiprofen'],
-  'naproxen': ['aspirin', 'ibuprofen', 'nsaid', 'aleve', 'flurbiprofen'],
-  'flurbiprofen': ['aspirin', 'ibuprofen', 'naproxen', 'nsaid', 'ansaid'],
-  'ansaid': ['aspirin', 'ibuprofen', 'naproxen', 'nsaid', 'flurbiprofen'],
-  'nsaid': ['aspirin', 'ibuprofen', 'naproxen', 'diclofenac', 'meloxicam', 'flurbiprofen', 'ansaid'],
-  'statin': ['atorvastatin', 'simvastatin', 'rosuvastatin', 'pravastatin', 'lipitor', 'crestor'],
-  'atorvastatin': ['statin', 'lipitor', 'simvastatin', 'rosuvastatin'],
-  'macrolide': ['azithromycin', 'erythromycin', 'clarithromycin', 'zithromax', 'biaxin'],
-  'azithromycin': ['macrolide', 'zithromax', 'erythromycin', 'clarithromycin'],
-  'erythromycin': ['macrolide', 'azithromycin', 'clarithromycin'],
-};
-
-/**
- * Checks medication for potential allergy conflicts.
- * @param medicationName - Name of medication to check
- * @param allergies - User's allergy list
- * @returns Array of conflicting allergies
- */
-export function checkAllergyConflicts(
-  medicationName: string,
+export async function checkAllergyConflicts(
+  medication: Medication,
   allergies: Allergy[]
-): Allergy[] {
-  if (!medicationName || allergies.length === 0) return [];
-  
-  const medLower = medicationName.toLowerCase();
-  
-  return allergies.filter(allergy => {
-    const allergenLower = allergy.allergen.toLowerCase();
-    
-    const extractIngredients = (name: string) => {
-      const beforeDosage = name.split(/\d+\s*(mg|mcg|ml|g|%|unit)/i)[0].trim();
-      
-      // Extract text from both parentheses () and brackets []
-      // Example: Handles "Ansaid (flurbiprofen)" and "Supra Sulfa [sulfamethazine]"
-      const extractedContent: string[] = [];
-      
-      // Extract from parentheses
-      const parenthesesMatches = beforeDosage.match(/\(([^)]+)\)/g);
-      if (parenthesesMatches) {
-        parenthesesMatches.forEach(match => {
-          const content = match.replace(/[()]/g, '').trim();
-          if (content) extractedContent.push(content);
+): Promise<{ allergy: Allergy; conflictingIngredient: string }[]> {
+  if (!medication.rxcui || allergies.length === 0) {
+    return [];
+  }
+
+  const conflicts: { allergy: Allergy; conflictingIngredient: string }[] = [];
+  const medicationIngredients = await getIngredients(medication.rxcui);
+
+  for (const allergy of allergies) {
+    if (!allergy.rxcui) {
+      // Fallback for allergies without an RxCUI - simple string match
+      if (medication.name.toLowerCase().includes(allergy.allergen.toLowerCase())) {
+        conflicts.push({ allergy, conflictingIngredient: allergy.allergen });
+      }
+      continue;
+    }
+
+    // Get drug classes and ingredients related to the allergen
+    const relatedAllergenConcepts = await getRelatedConcepts(allergy.rxcui, [
+      'IN',
+      'DF',
+      'TC',
+    ]);
+    const allergenRelatedRxcuis = new Set(relatedAllergenConcepts.map(c => c.rxcui));
+
+    // Direct match
+    if (allergenRelatedRxcuis.has(medication.rxcui)) {
+      conflicts.push({ allergy, conflictingIngredient: allergy.allergen });
+      continue;
+    }
+
+    // Check if any medication ingredients match the allergen's related concepts
+    for (const medIngredientRxcui of medicationIngredients) {
+      if (allergenRelatedRxcuis.has(medIngredientRxcui)) {
+        const conflictingConcept = relatedAllergenConcepts.find(
+          c => c.rxcui === medIngredientRxcui
+        );
+        conflicts.push({
+          allergy,
+          conflictingIngredient: conflictingConcept?.name || allergy.allergen,
         });
-      }
-      
-      // Extract from brackets
-      const bracketMatches = beforeDosage.match(/\[([^\]]+)\]/g);
-      if (bracketMatches) {
-        bracketMatches.forEach(match => {
-          const content = match.replace(/[\[\]]/g, '').trim();
-          if (content) extractedContent.push(content);
-        });
-      }
-      
-      // Remove parentheses, brackets, and form descriptions from main text
-      const withoutEnclosures = beforeDosage
-        .replace(/\(.*?\)/g, '')
-        .replace(/\[.*?\]/g, '')
-        .replace(/oral|tablet|capsule|solution|suspension|injection/gi, '')
-        .trim();
-      
-      // Combine all parts: main text + content from parentheses + content from brackets
-      const allParts = [withoutEnclosures, ...extractedContent].join(' ');
-      return allParts;
-    };
-    
-    const allergenIngredient = extractIngredients(allergenLower);
-    const medIngredient = extractIngredients(medLower);
-    
-    const allergenParts = allergenIngredient.split(/[\/\-\s]|and/i).map(p => p.trim()).filter(p => p.length > 2);
-    const medParts = medIngredient.split(/[\/\-\s]|and/i).map(p => p.trim()).filter(p => p.length > 2);
-    
-    for (const allergenPart of allergenParts) {
-      for (const medPart of medParts) {
-        if (medPart.includes(allergenPart) || allergenPart.includes(medPart)) {
-          return true;
-        }
-      }
-      if (medLower.includes(allergenPart)) {
-        return true;
+        break; // Move to the next allergy once a conflict is found
       }
     }
-    
-    for (const allergenPart of allergenParts) {
-      const crossReactiveClasses = DRUG_CLASS_CROSS_REACTIONS[allergenPart];
-      if (crossReactiveClasses) {
-        for (const relatedDrug of crossReactiveClasses) {
-          if (medLower.includes(relatedDrug)) {
-            return true;
-          }
-        }
-      }
-    }
-    
-    return false;
-  });
+  }
+
+  return conflicts;
 }

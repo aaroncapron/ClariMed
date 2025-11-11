@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contraindication warnings displayed on dashboard for existing medications**
 - Real-time checking of medications against user's health conditions
 - Severity-based warnings: Critical, Major, Moderate, Minor
+- **Expanded pregnancy contraindication database** with 23 medication classes including:
+  - Hormonal medications (estrogen, estradiol, birth control pills, testosterone)
+  - Teratogenic drugs (isotretinoin, valproic acid, methotrexate, thalidomide)
+  - Anti-seizure medications (phenytoin, carbamazepine)
+  - Cardiovascular drugs (ACE inhibitors, ARBs, statins)
+  - Antibiotics (tetracyclines, fluoroquinolones, aminoglycosides)
+  - Hair loss medications (finasteride, dutasteride)
+  - And many more with detailed descriptions
 
 **Dashboard Safety Display**
 - Health condition alert badges shown in both clarity and clinical modes
@@ -33,7 +41,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Kidney disease warnings: NSAIDs, metformin
 - Liver disease alerts: Acetaminophen (high doses), methotrexate
 - Asthma warnings: NSAIDs, beta blockers
-- Comprehensive contraindication database covering 40+ conditions
+- **Expanded contraindication coverage** with 11 new health condition categories:
+  - **COPD/Chronic Obstructive Pulmonary Disease**: Beta blockers (bronchospasm), benzodiazepines (respiratory depression)
+  - **Osteoporosis**: Corticosteroids (bone loss), proton pump inhibitors (calcium absorption)
+  - **Depression**: Beta blockers and corticosteroids (mood worsening)
+  - **Dementia/Cognitive Impairment**: Anticholinergics (cognitive decline), benzodiazepines (fall risk)
+  - **Myasthenia Gravis**: Fluoroquinolones (crisis risk), beta blockers and aminoglycosides (muscle weakness)
+  - **Long QT Syndrome**: Azithromycin, ondansetron (QT prolongation), methadone (sudden cardiac death)
+  - **Arrhythmia**: Azithromycin (rhythm disturbance)
+  - **Bleeding Disorder**: NSAIDs, antiplatelet drugs (hemorrhage risk)
+  - **Thyroid Disease**: Amiodarone (thyroid dysfunction), lithium (hypothyroidism)
+  - **Prostate Enlargement/BPH**: Anticholinergics (urinary retention), decongestants (obstruction)
+- Comprehensive contraindication database now covering 34+ health conditions
 
 **User Interface Improvements**
 - Health conditions section added to profile page

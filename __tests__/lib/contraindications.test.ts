@@ -53,7 +53,7 @@ describe('checkContraindications', () => {
 
       expect(warnings).toHaveLength(1);
       expect(warnings[0].severity).toBe('critical');
-      expect(warnings[0].description).toContain('contraindicated during pregnancy');
+      expect(warnings[0].description).toContain('Contraindicated during pregnancy');
     });
 
     it('should detect major contraindication for NSAIDs', () => {
