@@ -93,7 +93,7 @@ export default function DashboardPage() {
     const query = searchQuery.toLowerCase();
     return (
       med.name.toLowerCase().includes(query) ||
-      med.dosage.toLowerCase().includes(query) ||
+      med.quantity.toLowerCase().includes(query) ||
       med.frequency.toLowerCase().includes(query) ||
       (med.notes && med.notes.toLowerCase().includes(query))
     );

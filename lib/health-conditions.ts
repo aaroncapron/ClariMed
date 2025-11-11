@@ -30,8 +30,9 @@ async function getHealthConditionsFromSupabase(userId: string): Promise<HealthCo
     category: condition.category,
     diagnosed_date: condition.diagnosed_date || undefined,
     notes: condition.notes || undefined,
-    created_at: condition.created_at,
-    updated_at: condition.updated_at,
+    rxcui: condition.rxcui || undefined,
+    createdAt: condition.created_at,
+    updatedAt: condition.updated_at,
   }));
 }
 
@@ -68,8 +69,9 @@ async function addHealthConditionToSupabase(
     category: inserted.category,
     diagnosed_date: inserted.diagnosed_date || undefined,
     notes: inserted.notes || undefined,
-    created_at: inserted.created_at,
-    updated_at: inserted.updated_at,
+    rxcui: inserted.rxcui || undefined,
+    createdAt: inserted.created_at,
+    updatedAt: inserted.updated_at,
   };
 }
 
@@ -110,8 +112,9 @@ async function updateHealthConditionInSupabase(
     category: updated.category,
     diagnosed_date: updated.diagnosed_date || undefined,
     notes: updated.notes || undefined,
-    created_at: updated.created_at,
-    updated_at: updated.updated_at,
+    rxcui: updated.rxcui || undefined,
+    createdAt: updated.created_at,
+    updatedAt: updated.updated_at,
   };
 }
 
