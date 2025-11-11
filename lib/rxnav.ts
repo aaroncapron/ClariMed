@@ -367,11 +367,50 @@ export async function getSpellingSuggestions(query: string): Promise<string[]> {
 
 /**
  * Parses dosage from medication name.
+ * For patches and topicals, returns a more user-friendly format.
  * @param medicationName - Full medication name
  * @returns Dosage string or empty string if not found
  * @example parseDosage("lisinopril 10 MG Oral Tablet") // "10 MG"
+ * @example parseDosage("nicotine 0.014 MG/HR Patch") // "0.014 MG/HR"
  */
 export function parseDosage(medicationName: string): string {
+  // Check if it's a patch or topical form first
+  const isPatch = /\b(patch|transdermal)\b/i.test(medicationName);
+  const isTopical = /\b(cream|ointment|gel|lotion|foam)\b/i.test(medicationName);
+  
+  // For patches, look for MG/HR or similar rate-based dosing
+  if (isPatch) {
+    const patchMatch = medicationName.match(/(\d+(?:\.\d+)?\s*(?:MG|MCG)\/(?:HR|DAY|24HR))/i);
+    if (patchMatch) {
+      return patchMatch[1];
+    }
+    
+    // If patch but no rate found, look for total content
+    const contentMatch = medicationName.match(/(\d+(?:\.\d+)?\s*(?:MG|MCG))/i);
+    if (contentMatch) {
+      const value = parseFloat(contentMatch[1]);
+      // For very small values in patches (like < 1mg), it's likely the rate
+      if (value < 1) {
+        return `${contentMatch[1]}/HR (approx)`;
+      }
+      return `${contentMatch[1]} total`;
+    }
+  }
+  
+  // For topicals, show percentage or amount per application
+  if (isTopical) {
+    const percentMatch = medicationName.match(/(\d+(?:\.\d+)?\s*%)/i);
+    if (percentMatch) {
+      return percentMatch[1];
+    }
+    
+    const topicalMatch = medicationName.match(/(\d+(?:\.\d+)?\s*(?:MG|G)\/(?:G|ML|GM))/i);
+    if (topicalMatch) {
+      return topicalMatch[1];
+    }
+  }
+  
+  // Standard dosage extraction for oral, injectable, etc.
   const match = medicationName.match(/(\d+(?:\.\d+)?\s*(?:MG|ML|MCG|G|%|UNIT))/i);
   return match ? match[1] : '';
 }
@@ -385,4 +424,183 @@ export function parseDosage(medicationName: string): string {
 export function parseForm(medicationName: string): string {
   const match = medicationName.match(/(?:MG|ML|MCG|G|%|UNIT)\s+(.+?)$/i);
   return match ? match[1] : '';
+}
+
+/**
+ * Suggests default prescription directions based on medication name and form.
+ * This is a basic heuristic and should be reviewed by healthcare providers.
+ * @param medicationName - Full medication name
+ * @param dosage - Extracted dosage
+ * @returns Suggested directions string or empty string
+ * @example getSuggestedDirections("lisinopril 10 MG Oral Tablet", "10 MG") 
+ *          // "Take 1 tablet by mouth once daily"
+ */
+export function getSuggestedDirections(
+  medicationName: string,
+  dosage: string
+): string {
+  const nameLower = medicationName.toLowerCase();
+  const form = parseForm(medicationName).toLowerCase();
+
+  // Determine if patch, topical, or oral
+  if (/\bpatch\b|\btransdermal\b/i.test(nameLower)) {
+    if (nameLower.includes('nicotine')) {
+      return 'Apply 1 patch to clean, dry skin once daily';
+    }
+    if (nameLower.includes('fentanyl')) {
+      return 'Apply 1 patch every 72 hours (3 days)';
+    }
+    if (nameLower.includes('estradiol') || nameLower.includes('testosterone')) {
+      return 'Apply 1 patch twice weekly (every 3-4 days)';
+    }
+    if (nameLower.includes('clonidine')) {
+      return 'Apply 1 patch once weekly (every 7 days)';
+    }
+    return 'Apply 1 patch as directed by your healthcare provider';
+  }
+
+  if (/\bcream\b|\bointment\b|\bgel\b|\blotion\b/i.test(nameLower)) {
+    return 'Apply a thin layer to affected area as directed';
+  }
+
+  if (/\binhaler\b|\binhalation\b/i.test(nameLower)) {
+    if (nameLower.includes('albuterol') || nameLower.includes('proair') || nameLower.includes('ventolin')) {
+      return 'Inhale 2 puffs by mouth as needed for shortness of breath';
+    }
+    return 'Inhale as directed by your healthcare provider';
+  }
+
+  if (/\binjection\b/i.test(nameLower)) {
+    return 'Inject as directed by your healthcare provider';
+  }
+
+  // Oral medications
+  if (/\btablet\b/i.test(form)) {
+    // Check for common medication patterns
+    if (nameLower.includes('aspirin') && dosage.includes('81')) {
+      return 'Take 1 tablet by mouth once daily';
+    }
+    if (nameLower.includes('metformin')) {
+      return 'Take 1 tablet by mouth twice daily with meals';
+    }
+    if (nameLower.includes('lisinopril') || nameLower.includes('amlodipine')) {
+      return 'Take 1 tablet by mouth once daily';
+    }
+    if (nameLower.includes('atorvastatin') || nameLower.includes('simvastatin')) {
+      return 'Take 1 tablet by mouth once daily in the evening';
+    }
+    if (nameLower.includes('levothyroxine') || nameLower.includes('synthroid')) {
+      return 'Take 1 tablet by mouth once daily on an empty stomach';
+    }
+    if (nameLower.includes('prednisone')) {
+      return 'Take as directed by your healthcare provider';
+    }
+    if (nameLower.includes('birth control') || nameLower.includes('ethinyl estradiol')) {
+      return 'Take 1 tablet by mouth once daily at the same time each day';
+    }
+    
+    // Default for tablets
+    return 'Take 1 tablet by mouth once daily';
+  }
+
+  if (/\bcapsule\b/i.test(form)) {
+    if (nameLower.includes('omeprazole') || nameLower.includes('esomeprazole')) {
+      return 'Take 1 capsule by mouth once daily before breakfast';
+    }
+    return 'Take 1 capsule by mouth once daily';
+  }
+
+  if (/\bliquid\b|\bsolution\b|\bsuspension\b|\bsyrup\b/i.test(form)) {
+    return 'Take as directed by your healthcare provider (see dosing instructions)';
+  }
+
+  // Default fallback
+  return 'Take as directed by your healthcare provider';
+}
+
+/**
+ * Suggests a typical quantity format based on medication form and frequency.
+ * @param medicationName - Full medication name
+ * @param directions - Directions for use
+ * @returns Suggested quantity string (e.g., "30 tablets", "90 capsules")
+ */
+export function getSuggestedQuantity(
+  medicationName: string,
+  directions: string = ''
+): string {
+  const nameLower = medicationName.toLowerCase();
+  const directionsLower = directions.toLowerCase();
+  
+  // Patches - usually come in boxes
+  if (/\bpatch\b|\btransdermal\b/i.test(nameLower)) {
+    if (directionsLower.includes('daily') || directionsLower.includes('once daily')) {
+      return '30 patches'; // 30-day supply
+    }
+    if (directionsLower.includes('weekly') || directionsLower.includes('every 7')) {
+      return '4 patches'; // 4-week supply
+    }
+    if (directionsLower.includes('twice weekly') || directionsLower.includes('every 3-4')) {
+      return '8 patches'; // ~30-day supply
+    }
+    if (directionsLower.includes('72 hours') || directionsLower.includes('every 3 days')) {
+      return '10 patches'; // ~30-day supply
+    }
+    return '30 patches';
+  }
+  
+  // Topicals - usually by tube/jar
+  if (/\bcream\b|\bointment\b/i.test(nameLower)) {
+    return '1 tube';
+  }
+  if (/\bgel\b/i.test(nameLower)) {
+    return '1 tube';
+  }
+  if (/\blotion\b/i.test(nameLower)) {
+    return '1 bottle';
+  }
+  
+  // Inhalers
+  if (/\binhaler\b|\binhalation\b/i.test(nameLower)) {
+    return '1 inhaler';
+  }
+  
+  // Injections
+  if (/\binjection\b/i.test(nameLower)) {
+    if (nameLower.includes('insulin')) {
+      return '3 pens'; // Typical 90-day supply
+    }
+    return '1 vial';
+  }
+  
+  // Liquids
+  if (/\bliquid\b|\bsolution\b|\bsuspension\b|\bsyrup\b/i.test(nameLower)) {
+    return '1 bottle';
+  }
+  
+  // Tablets/Capsules - default to 30-day supply
+  if (/\btablet\b/i.test(nameLower)) {
+    if (directionsLower.includes('twice daily') || directionsLower.includes('twice a day')) {
+      return '60 tablets'; // 30-day supply
+    }
+    if (directionsLower.includes('three times') || directionsLower.includes('3 times')) {
+      return '90 tablets'; // 30-day supply
+    }
+    if (directionsLower.includes('four times') || directionsLower.includes('4 times')) {
+      return '120 tablets'; // 30-day supply
+    }
+    return '30 tablets'; // Default 30-day supply for once daily
+  }
+  
+  if (/\bcapsule\b/i.test(nameLower)) {
+    if (directionsLower.includes('twice daily') || directionsLower.includes('twice a day')) {
+      return '60 capsules';
+    }
+    if (directionsLower.includes('three times') || directionsLower.includes('3 times')) {
+      return '90 capsules';
+    }
+    return '30 capsules';
+  }
+  
+  // Default fallback
+  return '30 units';
 }

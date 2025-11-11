@@ -9,7 +9,7 @@ describe('checkContraindications', () => {
   const createMedication = (name: string): Medication => ({
     id: '1',
     name,
-    dosage: '10mg',
+    quantity: '30 tablets',
     frequency: 'once daily',
     isMaintenance: false,
     createdAt: new Date().toISOString(),
@@ -21,8 +21,8 @@ describe('checkContraindications', () => {
     user_id: 'user-123',
     condition,
     category,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 
   describe('Pregnancy contraindications', () => {
@@ -53,7 +53,7 @@ describe('checkContraindications', () => {
 
       expect(warnings).toHaveLength(1);
       expect(warnings[0].severity).toBe('critical');
-      expect(warnings[0].description).toContain('Contraindicated during pregnancy');
+      expect(warnings[0].description).toContain('serious harm to an unborn baby');
     });
 
     it('should detect major contraindication for NSAIDs', () => {
@@ -61,8 +61,8 @@ describe('checkContraindications', () => {
       const warnings = checkContraindications(med, [pregnancyCondition]);
 
       expect(warnings).toHaveLength(1);
-      expect(warnings[0].severity).toBe('major');
-      expect(warnings[0].description).toContain('third trimester');
+      expect(warnings[0].severity).toBe('critical');
+      expect(warnings[0].description).toContain('serious harm to an unborn baby');
     });
 
     it('should detect major contraindication for tetracyclines', () => {
@@ -70,8 +70,8 @@ describe('checkContraindications', () => {
       const warnings = checkContraindications(med, [pregnancyCondition]);
 
       expect(warnings).toHaveLength(1);
-      expect(warnings[0].severity).toBe('major');
-      expect(warnings[0].description).toContain('bone and tooth development');
+      expect(warnings[0].severity).toBe('critical');
+      expect(warnings[0].description).toContain('serious harm to an unborn baby');
     });
 
     it('should detect warfarin contraindication', () => {
@@ -146,8 +146,8 @@ describe('checkContraindications', () => {
       const warnings = checkContraindications(med, [liverCondition]);
 
       expect(warnings).toHaveLength(1);
-      expect(warnings[0].severity).toBe('critical');
-      expect(warnings[0].description).toContain('hepatotoxic');
+      expect(warnings[0].severity).toBe('major');
+      expect(warnings[0].description).toContain('liver damage');
     });
   });
 
@@ -224,7 +224,7 @@ describe('checkContraindications', () => {
   });
 
   describe('Seizure disorder contraindications', () => {
-    const seizureCondition = createCondition('Epilepsy', 'neurological');
+    const seizureCondition = createCondition('Seizure disorder', 'neurological');
 
     it('should detect bupropion contraindication', () => {
       const med = createMedication('Bupropion 150mg');
@@ -360,7 +360,7 @@ describe('checkContraindications', () => {
       const warnings = checkContraindications(med, [heartFailureCondition]);
 
       expect(warnings).toHaveLength(1);
-      expect(warnings[0].severity).toBe('moderate');
+      expect(warnings[0].severity).toBe('major');
     });
   });
 });

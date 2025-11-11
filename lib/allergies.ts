@@ -221,12 +221,157 @@ export async function deleteAllergy(id: string): Promise<boolean> {
 }
 
 /**
+ * Drug class cross-reactivity patterns for allergy checking.
+ */
+const ALLERGY_CROSS_REACTIVITY: { [key: string]: string[] } = {
+  penicillin: [
+    'amoxicillin',
+    'ampicillin',
+    'augmentin',
+    'penicillin',
+    'amoxil',
+    'trimox',
+  ],
+  ibuprofen: [
+    'ibuprofen',
+    'naproxen',
+    'aspirin',
+    'celecoxib',
+    'diclofenac',
+    'flurbiprofen',
+    'ansaid',
+    'advil',
+    'motrin',
+    'aleve',
+  ],
+  sulfa: [
+    'sulfamethoxazole',
+    'trimethoprim',
+    'bactrim',
+    'septra',
+    'sulfadiazine',
+    'sulfasalazine',
+    'sulfamethazine',
+    'sulfa',
+    'supra sulfa',
+  ],
+  acetaminophen: ['acetaminophen', 'tylenol', 'paracetamol'],
+};
+
+/**
+ * Extracts generic name from parentheses or brackets in medication name.
+ * E.g., "Advil (ibuprofen)" => "ibuprofen"
+ * E.g., "Tylenol [acetaminophen]" => "acetaminophen"
+ */
+function extractGenericName(medicationName: string): string | null {
+  const parenthesesMatch = medicationName.match(/\(([^)]+)\)/);
+  if (parenthesesMatch) return parenthesesMatch[1].trim();
+
+  const bracketsMatch = medicationName.match(/\[([^\]]+)\]/);
+  if (bracketsMatch) return bracketsMatch[1].trim();
+
+  return null;
+}
+
+/**
+ * Simple string-based allergy conflict checking (synchronous).
+ * Used for basic checks and testing. For comprehensive API-based checking,
+ * use checkAllergyConflictsAsync.
+ * 
+ * @param medicationName - The medication name to check
+ * @param allergies - The user's list of allergies
+ * @returns Array of conflicting allergies
+ */
+export function checkAllergyConflicts(
+  medicationName: string,
+  allergies: Allergy[]
+): Allergy[] {
+  if (!medicationName || allergies.length === 0) {
+    return [];
+  }
+
+  const conflicts: Allergy[] = [];
+  const medNameLower = medicationName.toLowerCase();
+  const genericName = extractGenericName(medicationName)?.toLowerCase();
+
+  for (const allergy of allergies) {
+    const allergenLower = allergy.allergen.toLowerCase();
+    const allergyGeneric = extractGenericName(allergy.allergen)?.toLowerCase();
+
+    // Direct match in medication name
+    if (medNameLower.includes(allergenLower)) {
+      conflicts.push(allergy);
+      continue;
+    }
+
+    // Direct match in allergen with medication
+    if (allergenLower.includes(medNameLower.split(' ')[0])) {
+      conflicts.push(allergy);
+      continue;
+    }
+
+    // Check generic name in parentheses/brackets
+    if (genericName) {
+      if (genericName.includes(allergenLower) || allergenLower.includes(genericName)) {
+        conflicts.push(allergy);
+        continue;
+      }
+      if (allergyGeneric && (genericName.includes(allergyGeneric) || allergyGeneric.includes(genericName))) {
+        conflicts.push(allergy);
+        continue;
+      }
+    }
+
+    // Check allergy generic name
+    if (allergyGeneric) {
+      if (medNameLower.includes(allergyGeneric) || allergyGeneric.includes(medNameLower.split(' ')[0])) {
+        conflicts.push(allergy);
+        continue;
+      }
+    }
+
+    // Check cross-reactivity patterns
+    for (const [allergyClass, relatedDrugs] of Object.entries(ALLERGY_CROSS_REACTIVITY)) {
+      const allergenMatchesClass = relatedDrugs.some(drug => allergenLower.includes(drug) || drug.includes(allergenLower));
+      const medicationMatchesClass = relatedDrugs.some(drug => medNameLower.includes(drug));
+
+      if (allergenMatchesClass && medicationMatchesClass) {
+        conflicts.push(allergy);
+        break;
+      }
+
+      // Also check generic names for cross-reactivity
+      if (genericName) {
+        const genericMatchesClass = relatedDrugs.some(drug => genericName.includes(drug) || drug.includes(genericName));
+        if (allergenMatchesClass && genericMatchesClass) {
+          conflicts.push(allergy);
+          break;
+        }
+      }
+
+      if (allergyGeneric) {
+        const allergyGenericMatchesClass = relatedDrugs.some(drug => allergyGeneric.includes(drug) || drug.includes(allergyGeneric));
+        const medicationMatchesClass = relatedDrugs.some(drug => medNameLower.includes(drug));
+        if (allergyGenericMatchesClass && medicationMatchesClass) {
+          conflicts.push(allergy);
+          break;
+        }
+      }
+    }
+  }
+
+  return conflicts;
+}
+
+/**
  * Checks for potential allergy conflicts using the RxNav API for cross-reactivity.
+ * This is the comprehensive async version that uses the RxNav API.
+ * 
  * @param medication - The medication being added.
  * @param allergies - The user's list of allergies.
  * @returns An array of conflicting allergies with detailed conflict information.
  */
-export async function checkAllergyConflicts(
+export async function checkAllergyConflictsAsync(
   medication: Medication,
   allergies: Allergy[]
 ): Promise<{ allergy: Allergy; conflictingIngredient: string }[]> {
