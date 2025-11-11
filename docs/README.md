@@ -1,11 +1,16 @@
 # ClariMed Documentation
 
-**Last Updated:** October 28, 2025  
+**Last Updated:** November 11, 2025  
 **Maintained By:** Aaron Capron
 
 ---
 
 ## Quick Links
+
+### Legal & Compliance
+- **[Terms of Service](./TERMS-OF-SERVICE.md)** - Usage terms and medical disclaimers [REQUIRED]
+- **[Attributions](./ATTRIBUTIONS.md)** - Third-party services and data sources (RxNav, etc.)
+- [Security Checklist](./SECURITY-CHECKLIST.md) - Security best practices and requirements
 
 ### Core Documentation
 - [Project Vision](./PROJECT-VISION.md) - Mission, goals, and long-term vision
@@ -16,7 +21,6 @@
 
 ### For Developers
 - [Guides](./guides/) - Setup guides, API documentation, quick starts
-- [Security Checklist](./SECURITY-CHECKLIST.md) - Security best practices and requirements
 
 ### For Testing
 - [Testing Documentation](./testing/) - Test checklists and procedures
@@ -32,6 +36,8 @@
 ```
 docs/
 ├── README.md (this file)
+├── ATTRIBUTIONS.md (Required - Third-party data sources)
+├── TERMS-OF-SERVICE.md (Required - Legal terms)
 ├── CHANGELOG.md
 ├── DEVELOPMENT-PROGRESS.md
 ├── FEATURES.md

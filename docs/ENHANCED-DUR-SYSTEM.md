@@ -1,10 +1,12 @@
 ## Enhanced Drug Utilization Review (DUR) System
 
 ### Overview
-The DUR system has been significantly expanded to provide comprehensive medication safety checking against:
-1. **Drug-to-drug interactions** (via RxNav API)
-2. **Drug allergies** (with cross-reactivity detection)
-3. **Health condition contraindications** (new in this update)
+The DUR system has been significantly enhanced to provide comprehensive medication safety checking powered by the NIH RxNav API:
+1. **Drug-to-drug interactions** (via RxNav Interaction API with DrugBank data)
+2. **Drug allergies** (with intelligent cross-reactivity detection via API)
+3. **Health condition contraindications** (via RxNav API)
+
+All safety checks are **API-driven**, ensuring up-to-date and accurate information from trusted medical databases.
 
 ### New Features
 
@@ -30,6 +32,7 @@ interface HealthCondition {
   id: string;
   user_id: string;
   condition: string;
+  rxcui?: string; // NEW: RxCUI for API-based contraindication checks
   category: HealthConditionCategory;
   diagnosed_date?: string;
   notes?: string;
@@ -57,7 +60,13 @@ interface HealthCondition {
 #### 3. Contraindication Checking
 **File**: `lib/contraindications.ts`
 
-Checks medications against health conditions for safety concerns:
+Checks medications against health conditions for safety concerns using the RxNav API:
+
+**API-Driven Approach**:
+- Fetches contraindication data from RxNav in real-time
+- Uses RxCUI codes to match medications with health conditions
+- Always up-to-date with latest medical research
+- No hardcoded data - fully dynamic
 
 **Severity Levels**:
 - **Critical**: Absolute contraindications (e.g., ACE inhibitors in pregnancy)
@@ -65,20 +74,9 @@ Checks medications against health conditions for safety concerns:
 - **Moderate**: Use with caution (e.g., corticosteroids in diabetes)
 - **Minor**: Generally safe but noteworthy
 
-**Example Contraindications**:
-- **Pregnancy**:
-  - Critical: Isotretinoin, Warfarin, ACE inhibitors, ARBs, Statins
-  - Major: NSAIDs (3rd trimester), Tetracyclines
-  
-- **Kidney Disease**:
-  - Major: NSAIDs, Metformin, Lithium
-  
-- **Liver Disease**:
-  - Critical: Methotrexate
-  - Major: Acetaminophen, Statins
-  
-- **Asthma**:
-  - Major: NSAIDs, Beta blockers
+**Key Functions**:
+- `checkContraindications(medication, conditions)`: Async function that queries RxNav API
+- `getContraindicationBadge(severity)`: Returns UI badge configuration
 
 #### 4. Database Schema
 **Migration**: `006_health_conditions.sql`
@@ -125,24 +123,29 @@ The system provides **decision support information**, not **clinical decisions**
 To complete the enhanced DUR implementation:
 
 1. ✅ Create health conditions types and interfaces
-2. ✅ Build contraindication checking system
+2. ✅ Build contraindication checking system with RxNav API
 3. ✅ Create common allergies/conditions reference data
 4. ✅ Add database migration for health_conditions table
-5. ⏳ **Create health conditions management UI** (profile page)
-6. ⏳ **Integrate contraindication checking into AddMedicationForm**
-7. ⏳ **Add autocomplete for common allergies in allergy form**
-8. ⏳ **Update dashboard to show contraindication warnings**
-9. ⏳ **Write tests for contraindications and reference data**
-10. ⏳ **Update documentation (FEATURES.md, CHANGELOG.md)**
+5. ✅ **Integrate allergy checking into AddMedicationForm with API**
+6. ✅ **Integrate drug interaction checking with RxNav API**
+7. ✅ **Integrate contraindication checking into AddMedicationForm**
+8. ⏳ **Create health conditions management UI** (profile page)
+9. ⏳ **Add autocomplete for common allergies in allergy form**
+10. ⏳ **Update dashboard to show contraindication warnings**
+11. ⏳ **Write tests for API-driven contraindications and interactions**
+12. ✅ **Update documentation (FEATURES.md, HOW-IT-WORKS.md)**
 
 ### Technical Notes
 
-- All new code follows existing patterns (matches allergies.ts structure)
+- All safety checks are **API-driven** using NIH RxNav
+- No hardcoded interaction or contraindication data
+- Real-time checks against DrugBank via RxNav
 - Type-safe with TypeScript interfaces
-- Supabase integration with RLS
+- Supabase integration with RLS for user data
 - Performance optimized with database indexing
-- Autocomplete uses fuzzy matching for better UX
-- Contraindication data curated from FDA drug labels and medical literature
+- Allergy checking uses ingredient and drug class analysis via API
+- Contraindication data sourced from FDA drug labels via RxNav
+- All checks return detailed warnings with severity levels
 
 ### Benefits
 

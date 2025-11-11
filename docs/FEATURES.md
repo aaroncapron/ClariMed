@@ -97,7 +97,7 @@ Automatic detection of long-term maintenance medications:
 
 ---
 
-## �️ Safety Features (v0.8.0)
+## Safety Features (v0.8.0)
 
 ### Allergy Management
 - **Complete allergy tracking**: Add, edit, delete allergies
@@ -108,23 +108,26 @@ Automatic detection of long-term maintenance medications:
 
 ### Allergy Conflict Detection
 - **Automatic checking**: Scans new medications against recorded allergies
-- **Cross-reactivity detection**: Identifies related drug classes
+- **RxNav API integration**: Uses NIH's RxNav API for intelligent cross-reactivity detection
+- **Dynamic drug class matching**: Identifies related drug classes and ingredients automatically
 - **Supported drug classes**:
   - Penicillins and cephalosporins
   - Sulfa drugs
   - NSAIDs (including aspirin)
   - Statins
   - Macrolides
+  - And many more via API
 - **Real-time warnings**: Alert before adding conflicting medication
-- **Ingredient extraction**: Matches even with dosage/form variations
+- **Intelligent matching**: Uses RxCUI codes and ingredient analysis for accurate detection
 
-### Drug Interaction Checking (DUR)
+### Drug Utilization Review (DUR)
 **Important Disclaimer**: This system provides educational information only. Always consult your healthcare provider about medication interactions.
 
 **Interaction Detection**:
-- **RxNav API integration**: Uses NIH's DrugBank interaction database
+- **RxNav API integration**: Uses NIH's DrugBank interaction database via RxNav
 - **Real-time checking**: Scans when adding new medications
 - **Pairwise analysis**: Checks new medication against all existing ones
+- **Dynamic data**: Always up-to-date with latest interaction research
 - **Severity classification**:
   - **Critical**: Contraindicated interactions (red)
   - **Major**: Serious interactions requiring monitoring (orange)
@@ -134,14 +137,15 @@ Automatic detection of long-term maintenance medications:
 **User Experience**:
 - **Color-coded warnings**: Visual severity indicators
 - **Detailed descriptions**: Explains the interaction mechanism
-- **Source attribution**: Shows DrugBank as the data source
+- **Source attribution**: Shows DrugBank/RxNav as the data source
 - **Non-blocking**: Users maintain full control over their medication list
 - **Educational disclaimers**: Clear reminders to consult healthcare providers
 
 **Technical Requirements**:
 - Only checks medications with RxCUI codes (verified medications)
 - Requires internet connection for real-time API calls
-- No data stored on interaction checks (privacy-focused)
+- No interaction data stored locally (privacy-focused)
+- Leverages ingredient-level analysis for combo drugs
 
 **FDA Compliance**:
 - Informational tool only, not medical advice
@@ -152,7 +156,7 @@ Automatic detection of long-term maintenance medications:
 
 ---
 
-## �🔐 Authentication & Security (v0.6.0)
+## Authentication & Security (v0.6.0)
 
 ### User Authentication
 - **Email/password signup**: Secure account creation
@@ -176,7 +180,7 @@ Automatic detection of long-term maintenance medications:
 
 ---
 
-## 🚧 Planned Features
+## Planned Features
 
 ### v0.7.x - Multi-User & Sync
 - **Pet profiles**: Track medications for pets
@@ -284,4 +288,4 @@ interface UserProfile {
 
 ---
 
-**Last Updated:** October 23, 2025 • **Version:** 0.6.0
+**Last Updated:** November 11, 2025 • **Version:** 0.8.0

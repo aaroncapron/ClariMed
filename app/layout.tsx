@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ViewModeProvider } from '@/contexts/ViewModeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,9 +22,12 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <ViewModeProvider>
-            <main className="min-h-screen bg-gray-50">
-              {children}
-            </main>
+            <div className="flex flex-col min-h-screen bg-gray-50">
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
           </ViewModeProvider>
         </AuthProvider>
       </body>

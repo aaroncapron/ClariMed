@@ -14,6 +14,7 @@ import { Suspense } from 'react'
 function LoginContent() {
   const searchParams = useSearchParams()
   const resetSuccess = searchParams.get('reset') === 'success'
+  const error = searchParams.get('error')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -30,6 +31,16 @@ function LoginContent() {
             <p className="text-sm text-green-700 flex items-center gap-2">
               <span className="text-lg">✓</span>
               Password updated successfully! You can now log in with your new password.
+            </p>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-700 flex items-start gap-2">
+              <span className="text-lg flex-shrink-0">⚠</span>
+              <span>{error}</span>
             </p>
           </div>
         )}

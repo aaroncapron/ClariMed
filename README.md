@@ -7,6 +7,21 @@ Simple, secure medication tracking with smart autocomplete and verification.
 
 ---
 
+## Important Disclaimers
+
+### Medical Disclaimer
+**This application is for educational and informational purposes only. It is NOT intended to be a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding medications or medical conditions.**
+
+### RxNav Data Attribution
+This application uses drug information from **RxNav**, provided by the U.S. National Library of Medicine (NLM), National Institutes of Health (NIH). Per NLM's terms:
+
+> The National Library of Medicine (NLM) licenses use of RxNav drug information **solely for non-commercial purposes**. RxNav drug information is derived from NLM's RxNorm, MED-RT, and RxTerms, and may also include information from First Databank, Inc.
+
+**[View Full Terms of Service](docs/TERMS-OF-SERVICE.md)**  
+**[View Attributions](docs/ATTRIBUTIONS.md)**
+
+---
+
 ## Features
 
 -  **Secure authentication** with Supabase
@@ -15,6 +30,7 @@ Simple, secure medication tracking with smart autocomplete and verification.
 -  **Drug class cross-reactivity** checking for safety
 -  **Intelligent autocomplete** with brand/generic drug search
 -  **Maintenance medication detection**
+-  **Refill tracking** with low refill warnings
 -  **Dual-mode interface** (Clarity vs Clinical views)
 -  **Verified badges** for API-validated medications
 
@@ -53,12 +69,16 @@ Open [http://localhost:3000](http://localhost:3000)
 
 **[Complete Documentation](docs/)** - Full documentation index
 
+### Legal & Compliance
+- **[Terms of Service](docs/TERMS-OF-SERVICE.md)** - Usage terms and medical disclaimers
+- **[Attributions](docs/ATTRIBUTIONS.md)** - Third-party services and data sources
+- [Security Checklist](docs/SECURITY-CHECKLIST.md) - Security best practices
+
 ### Quick Links
 - [Features Overview](docs/FEATURES.md) - What ClariMed can do
 - [Quick Start Guide](docs/guides/QUICK-START.md) - Get up and running
 - [Supabase Setup](docs/guides/SUPABASE-SETUP.md) - Database configuration
 - [Changelog](docs/CHANGELOG.md) - Version history and updates
-- [Security Checklist](docs/SECURITY-CHECKLIST.md) - Security best practices
 
 ### Documentation Categories
 - **[Guides](docs/guides/)** - Setup instructions and API documentation
@@ -69,9 +89,9 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Roadmap
 
-**v0.6.x** ✅ - Authentication and data migration (COMPLETE)  
-**v0.7.x** ✅ - User profiles and allergy tracking (COMPLETE)  
-**v0.8.x** 🔄 - Prescription savings coupons (IN PROGRESS)  
+**v0.6.x** [COMPLETE] - Authentication and data migration  
+**v0.7.x** [COMPLETE] - User profiles and allergy tracking  
+**v0.8.x** [IN PROGRESS] - Prescription savings coupons  
 **v0.9.x** - Multi-device sync and pet profiles  
 **v1.0.x** - Medication reminders and notifications  
 **v1.1.x** - Production release with PWA support

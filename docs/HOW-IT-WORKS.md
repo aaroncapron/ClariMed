@@ -174,13 +174,15 @@ Much easier to read!
 ## 🔮 What's NOT Sent to the Internet
 
 **Your privacy matters! These things NEVER leave your device:**
-- ❌ Your full medication list
+- ❌ Your full medication list (except during interaction checks - only RxCUI codes sent)
 - ❌ How many medications you have
 - ❌ Your notes
 - ❌ Any personal information
+- ❌ Your health conditions or allergies
 
 **Only this gets sent to the NIH database:**
 - ✅ The letters you type when searching (like "lisi")
+- ✅ RxCUI codes when checking for interactions (no names, just numeric IDs)
 - That's it!
 
 ---
@@ -190,16 +192,20 @@ Much easier to read!
 ### **Why We Use the NIH RxNav Database**
 1. **Government-run** - Trustworthy and official
 2. **Free** - No costs, no ads, no selling your data
-3. **Updated regularly** - Always has the latest medications
+3. **Updated regularly** - Always has the latest medications and interactions
 4. **Used by pharmacies** - Same database professionals use
 5. **Public domain** - Free for anyone to use
+6. **Comprehensive** - Includes DrugBank interaction data and ingredient relationships
 
 ### **What ClariMed Does to Keep You Safe**
 1. **Verifies medication names** against the official database
-2. **Shows clear badges** so you know what's verified
-3. **Lets you override suggestions** - you're always in control
-4. **Stores data locally** - no one else can access it
-5. **Never gives medical advice** - just helps you track
+2. **Checks for drug-drug interactions** using real-time API calls to DrugBank
+3. **Detects allergy conflicts** by analyzing drug classes and ingredients via API
+4. **Warns about contraindications** for health conditions (when implemented)
+5. **Shows clear badges** so you know what's verified
+6. **Lets you override suggestions** - you're always in control
+7. **Stores data locally** - no one else can access it (except optional cloud sync)
+8. **Never gives medical advice** - just helps you track and provides educational information
 
 ---
 
@@ -293,5 +299,5 @@ A: It'll help with "Clarity Mode" (coming soon) - a simple view showing only dai
 
 ---
 
-**Last Updated:** October 11, 2025  
-**Version:** 0.5.0
+**Last Updated:** November 11, 2025  
+**Version:** 0.8.0

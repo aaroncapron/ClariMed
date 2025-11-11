@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type { Medication } from '@/types';
-import { searchDrugs, parseDosage, parseForm, type DrugSearchResult } from '@/lib/rxnav';
+import type { Medication, Allergy } from '@/types';
+import { searchDrugs, parseDosage, parseForm, getSuggestedDirections, getSuggestedQuantity, type DrugSearchResult } from '@/lib/rxnav';
 import { isLikelyMaintenanceMed, getMaintenanceReason } from '@/lib/maintenance';
-import { checkAllergyConflicts, getAllergies } from '@/lib/allergies';
+import { checkAllergyConflictsAsync, getAllergies } from '@/lib/allergies';
 import { checkMedicationInteractions, getSeverityBadge, type DrugInteraction } from '@/lib/interactions';
 import { checkContraindications, type ContraindicationWarning } from '@/lib/contraindications';
 import { getHealthConditions } from '@/lib/health-conditions';
@@ -19,10 +19,16 @@ interface AddMedicationFormProps {
 
 export default function AddMedicationForm({ onSubmit, onCancel, initialData, isEditing = false, existingMedications = [] }: AddMedicationFormProps) {
   const [name, setName] = useState(initialData?.name || '');
-  const [dosage, setDosage] = useState(initialData?.dosage || '');
+  const [quantity, setQuantity] = useState(initialData?.quantity || '');
   const [frequency, setFrequency] = useState(initialData?.frequency || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [isMaintenance, setIsMaintenance] = useState(initialData?.isMaintenance ?? false);
+  
+  // Refill tracking
+  const [refillsRemaining, setRefillsRemaining] = useState<number | undefined>(initialData?.refills_remaining);
+  const [totalRefills, setTotalRefills] = useState<number | undefined>(initialData?.total_refills);
+  const [lastFillDate, setLastFillDate] = useState<string>(initialData?.last_fill_date || '');
+  const [lastPickupDate, setLastPickupDate] = useState<string>(initialData?.last_pickup_date || '');
   
   // Autocomplete state
   const [searchResults, setSearchResults] = useState<DrugSearchResult[]>([]);
@@ -31,10 +37,11 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   const [selectedRxcui, setSelectedRxcui] = useState<string | undefined>(initialData?.rxcui);
   const [maintenanceReason, setMaintenanceReason] = useState<string | null>(null);
   const [justSelected, setJustSelected] = useState(false);
+  const [suggestedDirections, setSuggestedDirections] = useState<string>('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Allergy warning state
-  const [allergyWarning, setAllergyWarning] = useState<string | null>(null);
+  const [allergyConflicts, setAllergyConflicts] = useState<{ allergy: Allergy; conflictingIngredient: string }[]>([]);
   const [isCheckingAllergies, setIsCheckingAllergies] = useState(false);
   
   // Drug interaction warning state
@@ -92,9 +99,20 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     setShowDropdown(false);
     setJustSelected(true);
     
-    const extractedDosage = parseDosage(drug.name);
-    if (extractedDosage) {
-      setDosage(extractedDosage);
+    // Get suggested directions (using parsed dosage for context)
+    const extractedStrength = parseDosage(drug.name);
+    const suggested = getSuggestedDirections(drug.name, extractedStrength);
+    setSuggestedDirections(suggested);
+    
+    // Get suggested quantity
+    const suggestedQty = getSuggestedQuantity(drug.name, suggested);
+    if (suggestedQty) {
+      setQuantity(suggestedQty);
+    }
+    
+    // Auto-populate directions if empty
+    if (!frequency && suggested) {
+      setFrequency(suggested);
     }
     
     const isMaintenanceDrug = isLikelyMaintenanceMed(medicationName);
@@ -103,25 +121,39 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     const reason = getMaintenanceReason(medicationName);
     setMaintenanceReason(reason);
     
-    checkForAllergyConflicts(medicationName);
+    checkForAllergyConflicts(medicationName, drug.rxcui);
     checkForInteractions(medicationName, drug.rxcui);
-    checkForContraindications(medicationName);
+    checkForContraindications(medicationName, drug.rxcui);
   };
   
-  // Check for allergy conflicts
-  const checkForAllergyConflicts = async (medicationName: string) => {
+  // Check for allergy conflicts using new API-driven function
+  const checkForAllergyConflicts = async (medicationName: string, rxcui?: string) => {
+    if (!rxcui) {
+      setAllergyConflicts([]);
+      return;
+    }
+    
     try {
       setIsCheckingAllergies(true);
-      setAllergyWarning(null);
+      setAllergyConflicts([]);
       
       const allergies = await getAllergies();
-      const conflicts = checkAllergyConflicts(medicationName, allergies);
       
-      if (conflicts.length > 0) {
-        const allergyNames = conflicts.map(a => a.allergen).join(', ');
-        const warningText = `This medication may conflict with your allergies: ${allergyNames}`;
-        setAllergyWarning(warningText);
-      }
+      // Create a temporary medication object for checking
+      const tempMedication: Medication = {
+        id: 'temp',
+        name: medicationName,
+        rxcui,
+        quantity: '',
+        frequency: '',
+        isMaintenance: false,
+        verified: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const conflicts = await checkAllergyConflictsAsync(tempMedication, allergies);
+      setAllergyConflicts(conflicts);
     } catch (err) {
       console.error('Error checking allergies:', err);
     } finally {
@@ -157,11 +189,11 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   };
 
   /**
-   * Checks for contraindications with user's health conditions.
+   * Checks for contraindications with user's health conditions using new API-driven function.
    * This is informational only and does not constitute medical advice.
    */
-  const checkForContraindications = async (medicationName: string) => {
-    if (isEditing) {
+  const checkForContraindications = async (medicationName: string, rxcui?: string) => {
+    if (isEditing || !rxcui) {
       setContraindications([]);
       return;
     }
@@ -176,16 +208,16 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       const tempMedication: Medication = {
         id: 'temp',
         name: medicationName,
-        dosage: '',
+        rxcui,
+        quantity: '',
         frequency: '',
         isMaintenance: false,
-        verified: false,
+        verified: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       
-      const warnings = checkContraindications(tempMedication, healthConditions);
-      
+      const warnings = await checkContraindications(tempMedication, healthConditions);
       setContraindications(warnings);
     } catch (err) {
       console.error('Error checking contraindications:', err);
@@ -197,23 +229,27 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !dosage.trim() || !frequency.trim()) {
+    if (!name.trim() || !quantity.trim() || !frequency.trim()) {
       alert('Please fill in all required fields');
       return;
     }
 
     const medicationData = {
       name: name.trim(),
-      dosage: dosage.trim(),
+      quantity: quantity.trim(),
       frequency: frequency.trim(),
       notes: notes.trim() || undefined,
       rxcui: selectedRxcui,
       verified: !!selectedRxcui,
       isMaintenance,
+      refills_remaining: refillsRemaining,
+      total_refills: totalRefills,
+      last_fill_date: lastFillDate || undefined,
+      last_pickup_date: lastPickupDate || undefined,
     };
 
     // Check if there are any warnings (allergies, interactions, or contraindications)
-    const hasWarnings = allergyWarning || interactions.length > 0 || contraindications.length > 0;
+    const hasWarnings = allergyConflicts.length > 0 || interactions.length > 0 || contraindications.length > 0;
     
     if (hasWarnings && !isEditing) {
       // Show confirmation dialog
@@ -230,13 +266,18 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
 
     // Reset form
     setName('');
-    setDosage('');
+    setQuantity('');
     setFrequency('');
     setNotes('');
     setSelectedRxcui(undefined);
     setIsMaintenance(false);
     setMaintenanceReason(null);
-    setAllergyWarning(null);
+    setSuggestedDirections('');
+    setRefillsRemaining(undefined);
+    setTotalRefills(undefined);
+    setLastFillDate('');
+    setLastPickupDate('');
+    setAllergyConflicts([]);
     setInteractions([]);
     setContraindications([]);
     setShowConfirmDialog(false);
@@ -316,20 +357,29 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
         </div>
 
         {/* Allergy Warning */}
-        {allergyWarning && (
-          <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
-            <div className="flex items-start gap-3">
-              <svg className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div className="flex-1">
-                <h4 className="font-bold text-red-900 mb-1">Allergy Alert</h4>
-                <p className="text-red-800">{allergyWarning}</p>
-                <p className="text-sm text-red-700 mt-2">
-                  Please consult with your healthcare provider before taking this medication.
-                </p>
+        {allergyConflicts.length > 0 && (
+          <div className="space-y-3">
+            {allergyConflicts.map((conflict, index) => (
+              <div key={index} className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-red-900 mb-1">Allergy Alert</h4>
+                    <p className="text-red-800 mb-1">
+                      This medication may conflict with your allergy to <span className="font-semibold">{conflict.allergy.allergen}</span>
+                    </p>
+                    <p className="text-sm text-red-700">
+                      Conflicting ingredient: {conflict.conflictingIngredient}
+                    </p>
+                    <p className="text-sm text-red-700 mt-2">
+                      ⚠️ Please consult with your healthcare provider or pharmacist before taking this medication.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         )}
         
@@ -366,20 +416,23 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
           </div>
         )}
 
-        {/* Dosage */}
+        {/* Quantity */}
         <div>
-          <label htmlFor="dosage" className="block text-base font-semibold text-gray-700 mb-2">
-            Dosage *
+          <label htmlFor="quantity" className="block text-base font-semibold text-gray-700 mb-2">
+            Quantity *
           </label>
           <input
             type="text"
-            id="dosage"
-            value={dosage}
-            onChange={(e) => setDosage(e.target.value)}
-            placeholder="e.g., 10mg"
+            id="quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder="e.g., 30 tablets, 1 patch box, 90 capsules"
             className="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             required
           />
+          <p className="text-sm text-gray-500 mt-1">
+            How much was dispensed (e.g., &quot;30 tablets&quot; for a 30-day supply)
+          </p>
         </div>
 
         {/* Directions (formerly Frequency) */}
@@ -399,6 +452,21 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
           <p className="text-sm text-gray-500 mt-1">
             How to take this medication (e.g., &quot;Take 2 capsules weekly&quot; or &quot;Split tablet in half, take with food&quot;)
           </p>
+          {suggestedDirections && suggestedDirections !== frequency && (
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">💡 Suggested directions: </span>
+                {suggestedDirections}
+              </p>
+              <button
+                type="button"
+                onClick={() => setFrequency(suggestedDirections)}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium underline"
+              >
+                Use this suggestion
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Maintenance Medication Checkbox */}
@@ -425,6 +493,94 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
               )}
             </div>
           </label>
+        </div>
+
+        {/* Refill Tracking Section */}
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Refill Tracking (Optional)
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Track your refills to know when to call your doctor or pharmacy
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Refills Remaining */}
+            <div>
+              <label htmlFor="refillsRemaining" className="block text-sm font-semibold text-gray-700 mb-2">
+                Refills Remaining
+              </label>
+              <input
+                type="number"
+                id="refillsRemaining"
+                value={refillsRemaining ?? ''}
+                onChange={(e) => setRefillsRemaining(e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder="e.g., 2"
+                min="0"
+                className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              />
+            </div>
+
+            {/* Total Refills */}
+            <div>
+              <label htmlFor="totalRefills" className="block text-sm font-semibold text-gray-700 mb-2">
+                Total Refills Authorized
+              </label>
+              <input
+                type="number"
+                id="totalRefills"
+                value={totalRefills ?? ''}
+                onChange={(e) => setTotalRefills(e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder="e.g., 5"
+                min="0"
+                className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              />
+            </div>
+
+            {/* Last Fill Date */}
+            <div>
+              <label htmlFor="lastFillDate" className="block text-sm font-semibold text-gray-700 mb-2">
+                Last Fill Date
+              </label>
+              <input
+                type="date"
+                id="lastFillDate"
+                value={lastFillDate}
+                onChange={(e) => setLastFillDate(e.target.value)}
+                className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              />
+            </div>
+
+            {/* Last Pickup Date */}
+            <div>
+              <label htmlFor="lastPickupDate" className="block text-sm font-semibold text-gray-700 mb-2">
+                Last Pickup Date
+              </label>
+              <input
+                type="date"
+                id="lastPickupDate"
+                value={lastPickupDate}
+                onChange={(e) => setLastPickupDate(e.target.value)}
+                className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              />
+            </div>
+          </div>
+
+          {refillsRemaining !== undefined && refillsRemaining <= 1 && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-300 rounded-lg">
+              <p className="text-sm text-amber-800 font-medium flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {refillsRemaining === 0 
+                  ? 'No refills remaining! Contact your doctor for a new prescription.'
+                  : 'Low on refills. Consider contacting your doctor soon.'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Notes */}
@@ -482,17 +638,22 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
               </div>
 
               <div className="space-y-4 mb-6">
-                {allergyWarning && (
-                  <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+                {allergyConflicts.map((conflict, index) => (
+                  <div key={`allergy-${index}`} className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
                     <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
                       Allergy Alert
                     </h4>
-                    <p className="text-red-800 text-sm">{allergyWarning}</p>
+                    <p className="text-red-900 font-medium text-sm mb-1">
+                      Allergy: {conflict.allergy.allergen}
+                    </p>
+                    <p className="text-red-800 text-sm">
+                      Conflicting ingredient: {conflict.conflictingIngredient}
+                    </p>
                   </div>
-                )}
+                ))}
 
                 {interactions.map((interaction, index) => {
                   const badge = getSeverityBadge(interaction.severity);

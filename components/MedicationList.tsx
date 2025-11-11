@@ -55,7 +55,7 @@ export default function MedicationList({ medications, onDelete, onEdit }: Medica
         
         if (healthConditions.length > 0) {
           for (const med of medications) {
-            const warnings = checkContraindications(med, healthConditions);
+            const warnings = await checkContraindications(med, healthConditions);
             if (warnings.length > 0) {
               contraindicationMap.set(med.id, warnings);
             }
@@ -154,8 +154,21 @@ function ClarityView({ medications, onDelete, onEdit, medicationInteractions, me
                   )}
                 </div>
                 <p className="text-gray-600 text-lg">
-                  {med.dosage} • {med.frequency}
+                  {med.quantity} • {med.frequency}
                 </p>
+                {med.refills_remaining !== undefined && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className={`text-sm px-3 py-1 rounded-full font-medium ${
+                      med.refills_remaining === 0 
+                        ? 'bg-red-100 text-red-800 border border-red-300'
+                        : med.refills_remaining === 1
+                        ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                        : 'bg-green-100 text-green-800 border border-green-300'
+                    }`}>
+                      {med.refills_remaining} refill{med.refills_remaining !== 1 ? 's' : ''} remaining
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <button
@@ -365,13 +378,42 @@ function ClinicalView({ medications, onDelete, onEdit, medicationInteractions, m
 
                 <div className="space-y-3 text-gray-700">
                   <p className="flex items-center gap-2 text-lg">
-                    <span className="font-semibold text-blue-700">Dosage:</span> 
-                    <span>{med.dosage}</span>
+                    <span className="font-semibold text-blue-700">Quantity:</span> 
+                    <span>{med.quantity}</span>
                   </p>
                   <p className="flex items-center gap-2 text-lg">
                     <span className="font-semibold text-blue-700">Directions:</span> 
                     <span>{med.frequency}</span>
                   </p>
+                  {med.refills_remaining !== undefined && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-blue-700">Refills:</span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        med.refills_remaining === 0 
+                          ? 'bg-red-100 text-red-800 border border-red-300'
+                          : med.refills_remaining === 1
+                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                          : 'bg-green-100 text-green-800 border border-green-300'
+                      }`}>
+                        {med.refills_remaining} remaining
+                      </span>
+                      {med.total_refills !== undefined && (
+                        <span className="text-sm text-gray-500">(of {med.total_refills})</span>
+                      )}
+                    </div>
+                  )}
+                  {med.last_fill_date && (
+                    <p className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="font-semibold">Last filled:</span> 
+                      <span>{new Date(med.last_fill_date).toLocaleDateString()}</span>
+                    </p>
+                  )}
+                  {med.last_pickup_date && (
+                    <p className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="font-semibold">Last picked up:</span> 
+                      <span>{new Date(med.last_pickup_date).toLocaleDateString()}</span>
+                    </p>
+                  )}
                   {med.therapeuticClass && (
                     <p className="flex items-center gap-2 text-lg">
                       <span className="font-semibold text-blue-700">Class:</span> 

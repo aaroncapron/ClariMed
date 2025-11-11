@@ -89,6 +89,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] - 2025-11-11
+
+### Added
+
+**Legal Pages & Compliance**
+- Created Terms of Service page (`/terms`) with RxNav non-commercial use requirements
+- Created Privacy Policy page (`/privacy`) with comprehensive data protection disclosure
+- Created Attributions page (`/attributions`) with required RxNav/NLM attribution
+- All legal pages include FDA medical disclaimers and professional consultation warnings
+- Cross-linked legal pages in footer and between each page
+- Responsive design with professional typography and clear section hierarchy
+
+**Refill Tracking System**
+- Refill management fields in medication database and UI
+- Track refills remaining, total refills authorized, fill dates, and pickup dates
+- Low refill warnings (amber badge when ≤2 refills remaining)
+- Next refill date calculation and display
+- Estimated pharmacy pickup date tracking
+- Database migration adds 7 new refill-related columns to medications table
+
+**Storage Layer Refactoring**
+- Modular storage architecture with clean separation of concerns
+- `lib/storage/supabase.ts` - Supabase-specific operations
+- `lib/storage/local.ts` - localStorage operations for guest users
+- `lib/storage/migration.ts` - Data migration utilities
+- `lib/storage/index.ts` - Unified API that routes to correct backend
+- Backward compatible with existing code using storage layer
+
+**Field Renaming**
+- Changed `dosage` field to `quantity` for clarity
+- Database migration migrates existing dosage data to quantity column
+- Updated all components, forms, and search filters
+- Quantity examples: "30 tablets", "1 patch box" (not strength/dosage)
+
+**Enhanced DUR System**
+- Async versions of allergy checking using RxNav API
+- `checkAllergyConflictsAsync()` provides real-time cross-reactivity detection
+- Enhanced ingredient extraction handles parentheses and brackets
+- Better generic name matching from brand name entries
+
+### Changed
+- Footer component now links to legal pages instead of markdown files
+- Database field naming standardized: snake_case in DB → camelCase in TypeScript
+- Health conditions mapping fixed for proper field name translation
+- Improved search functionality uses `quantity` instead of `dosage`
+
+### Fixed
+- TypeScript compilation errors from dosage→quantity refactoring
+- Database field name mismatches (created_at vs createdAt) in health conditions
+- All 159 tests passing with updated expectations
+- Production build succeeds with zero errors
+
+### Technical
+- Created 3 legal page components with Next.js metadata
+- Database migration: ADD quantity, refill tracking fields; migrate dosage→quantity
+- Enhanced `types/index.ts` with refill tracking fields
+- Updated storage layer across all modules
+- Fixed contraindications test expectations for severity levels
+- Enhanced `lib/health-conditions.ts` with proper field mapping
+
+### Documentation
+- Legal pages serve as documentation for terms, privacy, and attributions
+- Updated copilot instructions with deployment pipeline requirements
+- CHANGELOG.md updated with comprehensive v0.8.0 changes
+
+### Compliance
+- RxNav non-commercial use terms prominently displayed
+- Medical disclaimers on all drug safety features
+- Privacy policy covers Supabase, RxNav, and Vercel data sharing
+- User data rights clearly documented (access, edit, delete, export)
+- Children's privacy protection (under 13) included
+
+---
+
 ## [Unreleased]
 
 ### Added
