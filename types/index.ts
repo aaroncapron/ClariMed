@@ -20,11 +20,10 @@ export interface Medication {
   // Refill tracking
   refills_remaining?: number; // How many refills left (null if not tracked)
   total_refills?: number; // Total refills authorized (for reference)
-  last_fill_date?: string; // ISO date string - when last filled/picked up
   next_refill_date?: string; // ISO date string - estimated date for next refill
   
   // Pickup tracking
-  last_pickup_date?: string; // ISO date string - actual pickup date
+  last_pickup_date?: string; // ISO date string - when you last picked up from pharmacy
   estimated_next_pickup?: string; // ISO date string - estimated next pickup based on supply
   
   createdAt: string; // ISO date string
@@ -38,7 +37,6 @@ export interface MedicationFormData {
   notes?: string;
   refills_remaining?: number;
   total_refills?: number;
-  last_fill_date?: string;
   last_pickup_date?: string;
 }
 

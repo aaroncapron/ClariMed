@@ -40,7 +40,6 @@ export async function getMedicationsFromSupabase(userId: string): Promise<Medica
     ingredients: med.ingredients || undefined,
     refills_remaining: med.refills_remaining !== null ? med.refills_remaining : undefined,
     total_refills: med.total_refills !== null ? med.total_refills : undefined,
-    last_fill_date: med.last_fill_date || undefined,
     next_refill_date: med.next_refill_date || undefined,
     last_pickup_date: med.last_pickup_date || undefined,
     estimated_next_pickup: med.estimated_next_pickup || undefined,
@@ -77,7 +76,6 @@ export async function addMedicationToSupabase(
       ingredients: data.ingredients || null,
       refills_remaining: data.refills_remaining !== undefined ? data.refills_remaining : null,
       total_refills: data.total_refills !== undefined ? data.total_refills : null,
-      last_fill_date: data.last_fill_date || null,
       next_refill_date: data.next_refill_date || null,
       last_pickup_date: data.last_pickup_date || null,
       estimated_next_pickup: data.estimated_next_pickup || null,
@@ -104,7 +102,6 @@ export async function addMedicationToSupabase(
     ingredients: med.ingredients || undefined,
     refills_remaining: med.refills_remaining !== null ? med.refills_remaining : undefined,
     total_refills: med.total_refills !== null ? med.total_refills : undefined,
-    last_fill_date: med.last_fill_date || undefined,
     next_refill_date: med.next_refill_date || undefined,
     last_pickup_date: med.last_pickup_date || undefined,
     estimated_next_pickup: med.estimated_next_pickup || undefined,
@@ -140,7 +137,6 @@ export async function updateMedicationInSupabase(
   if (data.ingredients !== undefined) updateData.ingredients = data.ingredients || null;
   if (data.refills_remaining !== undefined) updateData.refills_remaining = data.refills_remaining !== undefined ? data.refills_remaining : null;
   if (data.total_refills !== undefined) updateData.total_refills = data.total_refills !== undefined ? data.total_refills : null;
-  if (data.last_fill_date !== undefined) updateData.last_fill_date = data.last_fill_date || null;
   if (data.next_refill_date !== undefined) updateData.next_refill_date = data.next_refill_date || null;
   if (data.last_pickup_date !== undefined) updateData.last_pickup_date = data.last_pickup_date || null;
   if (data.estimated_next_pickup !== undefined) updateData.estimated_next_pickup = data.estimated_next_pickup || null;
@@ -172,7 +168,6 @@ export async function updateMedicationInSupabase(
     ingredients: med.ingredients || undefined,
     refills_remaining: med.refills_remaining !== null ? med.refills_remaining : undefined,
     total_refills: med.total_refills !== null ? med.total_refills : undefined,
-    last_fill_date: med.last_fill_date || undefined,
     next_refill_date: med.next_refill_date || undefined,
     last_pickup_date: med.last_pickup_date || undefined,
     estimated_next_pickup: med.estimated_next_pickup || undefined,

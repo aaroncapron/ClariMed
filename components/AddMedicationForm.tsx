@@ -27,7 +27,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   // Refill tracking
   const [refillsRemaining, setRefillsRemaining] = useState<number | undefined>(initialData?.refills_remaining);
   const [totalRefills, setTotalRefills] = useState<number | undefined>(initialData?.total_refills);
-  const [lastFillDate, setLastFillDate] = useState<string>(initialData?.last_fill_date || '');
   const [lastPickupDate, setLastPickupDate] = useState<string>(initialData?.last_pickup_date || '');
   
   // Autocomplete state
@@ -244,7 +243,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       isMaintenance,
       refills_remaining: refillsRemaining,
       total_refills: totalRefills,
-      last_fill_date: lastFillDate || undefined,
       last_pickup_date: lastPickupDate || undefined,
     };
 
@@ -261,27 +259,31 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     }
   };
 
-  const submitMedication = (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
-    onSubmit(data);
+  const submitMedication = async (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      await onSubmit(data);
 
-    // Reset form
-    setName('');
-    setQuantity('');
-    setFrequency('');
-    setNotes('');
-    setSelectedRxcui(undefined);
-    setIsMaintenance(false);
-    setMaintenanceReason(null);
-    setSuggestedDirections('');
-    setRefillsRemaining(undefined);
-    setTotalRefills(undefined);
-    setLastFillDate('');
-    setLastPickupDate('');
-    setAllergyConflicts([]);
-    setInteractions([]);
-    setContraindications([]);
-    setShowConfirmDialog(false);
-    setPendingSubmitData(null);
+      // Reset form only after successful submission
+      setName('');
+      setQuantity('');
+      setFrequency('');
+      setNotes('');
+      setSelectedRxcui(undefined);
+      setIsMaintenance(false);
+      setMaintenanceReason(null);
+      setSuggestedDirections('');
+      setRefillsRemaining(undefined);
+      setTotalRefills(undefined);
+      setLastPickupDate('');
+      setAllergyConflicts([]);
+      setInteractions([]);
+      setContraindications([]);
+      setShowConfirmDialog(false);
+      setPendingSubmitData(null);
+    } catch (error) {
+      console.error('Error submitting medication:', error);
+      alert('Failed to add medication. Please try again.');
+    }
   };
 
   const handleConfirmAdd = () => {
@@ -540,22 +542,8 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
               />
             </div>
 
-            {/* Last Fill Date */}
-            <div>
-              <label htmlFor="lastFillDate" className="block text-sm font-semibold text-gray-700 mb-2">
-                Last Fill Date
-              </label>
-              <input
-                type="date"
-                id="lastFillDate"
-                value={lastFillDate}
-                onChange={(e) => setLastFillDate(e.target.value)}
-                className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-              />
-            </div>
-
             {/* Last Pickup Date */}
-            <div>
+            <div className="md:col-span-2">
               <label htmlFor="lastPickupDate" className="block text-sm font-semibold text-gray-700 mb-2">
                 Last Pickup Date
               </label>
@@ -566,6 +554,9 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
                 onChange={(e) => setLastPickupDate(e.target.value)}
                 className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                When did you last pick up this prescription from the pharmacy?
+              </p>
             </div>
           </div>
 

@@ -67,7 +67,6 @@ export async function migrateMedicationsToSupabase(userId: string): Promise<{
       ingredients: med.ingredients || null,
       refills_remaining: med.refills_remaining !== undefined ? med.refills_remaining : null,
       total_refills: med.total_refills !== undefined ? med.total_refills : null,
-      last_fill_date: med.last_fill_date || null,
       next_refill_date: med.next_refill_date || null,
       last_pickup_date: med.last_pickup_date || null,
       estimated_next_pickup: med.estimated_next_pickup || null,
