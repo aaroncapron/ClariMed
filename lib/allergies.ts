@@ -259,6 +259,64 @@ const ALLERGY_CROSS_REACTIVITY: { [key: string]: string[] } = {
 };
 
 /**
+ * Default severity levels for common drug allergies.
+ * Used to suggest appropriate severity when adding allergies.
+ */
+export const DEFAULT_ALLERGY_SEVERITIES: {
+  [key: string]: 'mild' | 'moderate' | 'severe' | 'anaphylaxis';
+} = {
+  // Penicillin allergies - often severe due to anaphylaxis risk
+  penicillin: 'severe',
+  'penicillin antibiotics': 'severe',
+  amoxicillin: 'severe',
+  ampicillin: 'severe',
+  augmentin: 'severe',
+  
+  // Sulfa drugs - variable severity but often moderate to severe
+  sulfa: 'moderate',
+  'sulfa drugs': 'moderate',
+  sulfamethoxazole: 'moderate',
+  bactrim: 'moderate',
+  
+  // NSAIDs - typically moderate
+  ibuprofen: 'moderate',
+  naproxen: 'moderate',
+  'nsaids': 'moderate',
+  aspirin: 'moderate',
+  
+  // Others
+  latex: 'severe',
+  shellfish: 'severe',
+  peanuts: 'anaphylaxis',
+  'tree nuts': 'severe',
+};
+
+/**
+ * Returns suggested severity for a given allergen name.
+ * @param allergenName - The allergen name to check
+ * @returns Suggested severity level
+ */
+export function getSuggestedAllergySeverity(
+  allergenName: string
+): 'mild' | 'moderate' | 'severe' | 'anaphylaxis' | null {
+  const normalized = allergenName.toLowerCase().trim();
+  
+  // Check exact match
+  if (DEFAULT_ALLERGY_SEVERITIES[normalized]) {
+    return DEFAULT_ALLERGY_SEVERITIES[normalized];
+  }
+  
+  // Check if allergen name contains any known drug class
+  for (const [className, severity] of Object.entries(DEFAULT_ALLERGY_SEVERITIES)) {
+    if (normalized.includes(className) || className.includes(normalized)) {
+      return severity;
+    }
+  }
+  
+  return null; // No default suggestion, use form default
+}
+
+/**
  * Extracts generic name from parentheses or brackets in medication name.
  * E.g., "Advil (ibuprofen)" => "ibuprofen"
  * E.g., "Tylenol [acetaminophen]" => "acetaminophen"
@@ -383,37 +441,35 @@ export async function checkAllergyConflictsAsync(
   const medicationIngredients = await getIngredients(medication.rxcui);
 
   for (const allergy of allergies) {
-    if (!allergy.rxcui) {
-      // Fallback for allergies without an RxCUI - simple string match
-      if (medication.name.toLowerCase().includes(allergy.allergen.toLowerCase())) {
+    // CRITICAL: Check for exact RxCUI match first (same drug formulation)
+    if (allergy.rxcui && allergy.rxcui === medication.rxcui) {
+      conflicts.push({ allergy, conflictingIngredient: allergy.allergen });
+      continue;
+    }
+
+    // Handle drug class allergies (e.g., "Penicillin antibiotics (drug class)")
+    if (!allergy.rxcui || allergy.rxcui.startsWith('CLASS_')) {
+      // Use synchronous cross-reactivity checking for drug classes
+      const simpleConflicts = checkAllergyConflicts(medication.name, [allergy]);
+      if (simpleConflicts.length > 0) {
         conflicts.push({ allergy, conflictingIngredient: allergy.allergen });
       }
       continue;
     }
 
-    // Get drug classes and ingredients related to the allergen
-    const relatedAllergenConcepts = await getRelatedConcepts(allergy.rxcui, [
-      'IN',
-      'DF',
-      'TC',
-    ]);
-    const allergenRelatedRxcuis = new Set(relatedAllergenConcepts.map(c => c.rxcui));
-
-    // Direct match
-    if (allergenRelatedRxcuis.has(medication.rxcui)) {
-      conflicts.push({ allergy, conflictingIngredient: allergy.allergen });
-      continue;
-    }
-
-    // Check if any medication ingredients match the allergen's related concepts
+    // Get ingredients from the allergen (if it's a drug)
+    const allergenIngredients = await getIngredients(allergy.rxcui);
+    
+    // Check if any medication ingredients match any allergen ingredients (cross-reactivity)
     for (const medIngredientRxcui of medicationIngredients) {
-      if (allergenRelatedRxcuis.has(medIngredientRxcui)) {
-        const conflictingConcept = relatedAllergenConcepts.find(
-          c => c.rxcui === medIngredientRxcui
-        );
+      if (allergenIngredients.includes(medIngredientRxcui)) {
+        // Get the ingredient name
+        const relatedConcepts = await getRelatedConcepts(medIngredientRxcui, ['IN']);
+        const ingredientName = relatedConcepts.find(c => c.rxcui === medIngredientRxcui)?.name || 'shared ingredient';
+        
         conflicts.push({
           allergy,
-          conflictingIngredient: conflictingConcept?.name || allergy.allergen,
+          conflictingIngredient: ingredientName,
         });
         break; // Move to the next allergy once a conflict is found
       }

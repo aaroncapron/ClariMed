@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { Allergy, AllergySeverity, AllergyFormData } from '@/types';
-import { getAllergies, addAllergy, updateAllergy, deleteAllergy } from '@/lib/allergies';
+import { getAllergies, addAllergy, updateAllergy, deleteAllergy, getSuggestedAllergySeverity } from '@/lib/allergies';
 import { searchDrugs, type DrugSearchResult } from '@/lib/rxnav';
 
 export default function AllergyList() {
@@ -60,8 +60,56 @@ export default function AllergyList() {
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const results = await searchDrugs(searchQuery);
-        setSearchResults(results);
-        setShowDropdown(results.length > 0);
+        
+        // Add common drug class suggestions if query matches
+        const drugClassSuggestions: DrugSearchResult[] = [];
+        const queryLower = searchQuery.toLowerCase();
+        
+        if ('penicillin'.includes(queryLower) || queryLower.includes('penicillin')) {
+          drugClassSuggestions.push({
+            rxcui: 'CLASS_PENICILLIN',
+            name: 'Penicillin antibiotics (drug class)',
+            displayName: 'Penicillin antibiotics (drug class)',
+            tty: 'IN',
+            language: 'ENG',
+            suppress: 'N',
+          });
+        }
+        if ('sulfa'.includes(queryLower) || queryLower.includes('sulfa')) {
+          drugClassSuggestions.push({
+            rxcui: 'CLASS_SULFA',
+            name: 'Sulfa drugs (drug class)',
+            displayName: 'Sulfa drugs (drug class)',
+            tty: 'IN',
+            language: 'ENG',
+            suppress: 'N',
+          });
+        }
+        if (queryLower.includes('nsaid') || 'ibuprofen'.includes(queryLower) || 'naproxen'.includes(queryLower)) {
+          drugClassSuggestions.push({
+            rxcui: 'CLASS_NSAID',
+            name: 'NSAIDs (non-steroidal anti-inflammatory drugs)',
+            displayName: 'NSAIDs (non-steroidal anti-inflammatory drugs)',
+            tty: 'IN',
+            language: 'ENG',
+            suppress: 'N',
+          });
+        }
+        if ('aspirin'.includes(queryLower) || queryLower.includes('aspirin') || queryLower.includes('acetaminophen') || queryLower.includes('tylenol')) {
+          drugClassSuggestions.push({
+            rxcui: 'CLASS_ACETAMINOPHEN',
+            name: 'Acetaminophen/Aspirin products',
+            displayName: 'Acetaminophen/Aspirin products',
+            tty: 'IN',
+            language: 'ENG',
+            suppress: 'N',
+          });
+        }
+        
+        // Put drug class suggestions at the top
+        const combinedResults = [...drugClassSuggestions, ...results];
+        setSearchResults(combinedResults);
+        setShowDropdown(combinedResults.length > 0);
       } catch (err) {
         console.error('Search error:', err);
         setSearchResults([]);
@@ -92,16 +140,27 @@ export default function AllergyList() {
 
   function handleSearchChange(value: string) {
     setSearchQuery(value);
-    setFormData({ ...formData, allergen: value, rxcui: undefined });
+    
+    // Suggest severity based on allergen name
+    const suggestedSeverity = getSuggestedAllergySeverity(value);
+    if (suggestedSeverity) {
+      setFormData({ ...formData, allergen: value, rxcui: undefined, severity: suggestedSeverity });
+    } else {
+      setFormData({ ...formData, allergen: value, rxcui: undefined });
+    }
   }
 
   function selectDrug(drug: DrugSearchResult) {
+    const drugName = drug.displayName || drug.name;
+    const suggestedSeverity = getSuggestedAllergySeverity(drugName);
+    
     setFormData({
       ...formData,
-      allergen: drug.displayName || drug.name,
+      allergen: drugName,
       rxcui: drug.rxcui,
+      severity: suggestedSeverity || formData.severity,
     });
-    setSearchQuery(drug.displayName || drug.name);
+    setSearchQuery(drugName);
     setShowDropdown(false);
     setSearchResults([]);
   }
