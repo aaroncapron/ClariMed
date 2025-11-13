@@ -65,17 +65,22 @@ export default function DashboardPage() {
   }, [showForm]);
 
   const handleAdd = async (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (editingMed) {
-      // Update existing medication
-      await updateMedication(editingMed.id, data);
-      setEditingMed(null);
-    } else {
-      // Add new medication
-      await addMedication(data);
+    try {
+      if (editingMed) {
+        // Update existing medication
+        await updateMedication(editingMed.id, data);
+        setEditingMed(null);
+      } else {
+        // Add new medication
+        await addMedication(data);
+      }
+      const meds = await getMedications();
+      setMedications(meds);
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error in handleAdd:', error);
+      alert(`Failed to ${editingMed ? 'update' : 'add'} medication. Please check the console for details.`);
     }
-    const meds = await getMedications();
-    setMedications(meds);
-    setShowForm(false);
   };
 
   const handleEdit = (med: Medication) => {
