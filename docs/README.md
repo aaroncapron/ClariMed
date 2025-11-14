@@ -61,8 +61,7 @@ docs/
 │
 └── testing/
     ├── README.md
-    ├── AUTH-TESTING-CHECKLIST.md
-    └── MIGRATION-TESTING-GUIDE.md
+    └── AUTH-TESTING-CHECKLIST.md
 ```
 
 ---
@@ -95,7 +94,6 @@ Setup instructions and API documentation.
 ### Testing
 Test procedures and checklists.
 - **testing/AUTH-TESTING-CHECKLIST.md** - Authentication tests
-- **testing/MIGRATION-TESTING-GUIDE.md** - Data migration tests
 
 ### Change Management
 Tracking changes and completion.

@@ -1,8 +1,9 @@
 /**
  * RxNav API integration for medication lookup and validation.
- * Uses NIH RxNav REST API (public domain, no API key required).
+ * Uses NIH Prescribable RxNorm API (public domain, no API key required).
+ * Returns only prescribable medications (active RxNorm content).
  * 
- * @see https://lhncbc.nlm.nih.gov/RxNav/APIs/
+ * @see https://lhncbc.nlm.nih.gov/RxNav/APIs/PrescribableAPIs.html
  */
 
 const RXNAV_BASE_URL = 'https://rxnav.nlm.nih.gov/REST';
@@ -100,7 +101,7 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
   
   try {
     let response = await fetch(
-      `${RXNAV_BASE_URL}/prescribe.json?name=${encodeURIComponent(query)}`
+      `${RXNAV_BASE_URL}/drugs.json?name=${encodeURIComponent(query)}`
     );
     
     if (!response.ok) {

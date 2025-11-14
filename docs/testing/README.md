@@ -54,25 +54,6 @@ Comprehensive authentication testing covering:
 
 ---
 
-### [MIGRATION-TESTING-GUIDE.md](./MIGRATION-TESTING-GUIDE.md)
-**Version:** v0.6.1  
-**Status:** ✅ All tests passed  
-**Tested By:** Aaron Capron  
-**Date:** October 28, 2025
-
-Data migration testing covering:
-- localStorage to Supabase migration
-- Migration banner display logic
-- Data import and skip functionality
-- Cross-user data protection
-- Error handling and recovery
-- Large dataset performance
-- Storage layer routing
-
-**Total Tests:** 10 | **Passed:** 10
-
----
-
 ## Testing Guidelines
 
 ### Before Running Tests
@@ -102,7 +83,6 @@ All tests must be:
 |-----------|---------|---------|-------|--------|------|
 | Automated | Core Libraries | v0.7.0 | 41/41 | ✅ PASS | Oct 28, 2025 |
 | Manual | Authentication | v0.6.0 | 20/20 | ✅ PASS | Oct 23, 2025 |
-| Manual | Data Migration | v0.6.1 | 10/10 | ✅ PASS | Oct 28, 2025 |
 
 ---
 

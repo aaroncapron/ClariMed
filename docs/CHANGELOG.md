@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - Surgical Refactor (In Progress)
+
+### BREAKING CHANGES
+- **Removed localStorage support** - Application now requires authentication
+- **Removed data migration system** - No longer migrates data from guest to authenticated users
+- **Removed drug-drug interaction checking** - RxNav interaction API discontinued (404 errors)
+- **Authentication required** - All medication storage operations require Supabase login
+
+### Removed
+- Deleted `lib/storage/local.ts` - localStorage medication operations
+- Deleted `lib/storage/migration.ts` - data migration utilities  
+- Deleted `components/MigrationBanner.tsx` - migration prompt UI
+- Deleted `lib/supabase/database.types.ts` - corrupted auto-generated types
+- Removed drug interaction checking from `AddMedicationForm`
+- Removed interaction warnings from medication cards and dashboard
+- Removed localStorage fallback from storage layer
+
+### Changed
+- **Storage layer now Supabase-only** - `lib/storage/index.ts` requires authenticated user
+- **Type system aligned with database schema** - Created clean `lib/supabase/db.types.ts`
+- Fixed field mappings: `allergen` (not `allergy`), `diagnosed_date`, `last_fill_date`
+- Fixed `ingredients` stored as `text[]` in database (not JSON)
+- Updated `lib/allergies.ts`, `lib/health-conditions.ts`, `lib/storage/supabase.ts` with correct types
+- `InteractionSummary` component now shows "unavailable" message
+- Enhanced health alert visibility with amber background shading on medication cards
+
+### Added
+- Clean build script (`scripts/clean-build.js`) to handle Windows `.next/trace` lock issues
+- New npm scripts: `npm run clean` and `npm run rebuild`
+- Amber-50 background tint for medication cards with critical/major warnings
+- Darker amber-400 borders for better warning visibility on white backgrounds
+
+### Fixed
+- Resolved TypeScript compilation errors from schema mismatches
+- Fixed Supabase insert/update operations with proper type casting
+- Eliminated "pathspec did not match" git commit errors on Windows
+- Build now completes with 0 errors (17 routes optimized)
+- All 140 tests passing
+
+---
+
 ## [0.9.0] - 2025-11-04
 
 ### Added

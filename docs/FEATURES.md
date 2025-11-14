@@ -32,7 +32,7 @@ ClariMed integrates with NIH's RxNav API for intelligent medication lookup:
 - **Deduplication**: Removes duplicate packages/manufacturers, shows one per formulation
 - **Fast response**: 150ms debounce for responsive autocomplete
 - **Auto-fill dosage**: Extracts dosage from drug name automatically
-- **RxCUI storage**: Stores RxCUI codes for future interaction checking
+- **RxCUI storage**: Stores RxCUI codes for medication identification
 - **✓ Verified badge**: Shows on API-validated medications
 
 #### Maintenance Medication Detection
@@ -74,7 +74,7 @@ Automatic detection of long-term maintenance medications:
 **Toggle Features**:
 - Floating button (bottom-right corner)
 - One-click switching
-- localStorage remembers preference
+- User preference stored in database
 - Smooth transitions
 
 #### Search & Filter
@@ -91,7 +91,7 @@ Automatic detection of long-term maintenance medications:
 - **Responsive layout**: Adapts to screen size
 
 #### Data Persistence
-- **localStorage**: Legacy support, works offline
+- **Supabase**: PostgreSQL database with Row Level Security
 - **Supabase**: Cloud storage (in progress)
 - **Automatic sync**: Multi-device support (coming soon)
 
@@ -121,31 +121,27 @@ Automatic detection of long-term maintenance medications:
 - **Intelligent matching**: Uses RxCUI codes and ingredient analysis for accurate detection
 
 ### Drug Utilization Review (DUR)
-**Important Disclaimer**: This system provides educational information only. Always consult your healthcare provider about medication interactions.
+**Important Disclaimer**: This system provides educational information only. Always consult your healthcare provider about potential medication issues.
 
-**Interaction Detection**:
-- **RxNav API integration**: Uses NIH's DrugBank interaction database via RxNav
-- **Real-time checking**: Scans when adding new medications
-- **Pairwise analysis**: Checks new medication against all existing ones
-- **Dynamic data**: Always up-to-date with latest interaction research
-- **Severity classification**:
-  - **Critical**: Contraindicated interactions (red)
-  - **Major**: Serious interactions requiring monitoring (orange)
-  - **Moderate**: Use with caution (yellow)
-  - **Minor**: Generally safe but worth noting (blue)
+**Allergy Detection**:
+- Cross-reactivity checking (e.g., penicillin allergies)
+- Ingredient-level matching
+- Real-time warnings before adding medications
+- Severity classification: Critical, Major, Moderate, Minor
+
+**Contraindication Checking**:
+- Health condition-based warnings
+- Pregnancy contraindications (23+ medication classes)
+- Kidney/liver disease alerts
+- Respiratory condition warnings (asthma, COPD)
+- Cardiovascular warnings (arrhythmia, Long QT)
+- And more via medical knowledge base
 
 **User Experience**:
-- **Color-coded warnings**: Visual severity indicators
-- **Detailed descriptions**: Explains the interaction mechanism
-- **Source attribution**: Shows DrugBank/RxNav as the data source
-- **Non-blocking**: Users maintain full control over their medication list
-- **Educational disclaimers**: Clear reminders to consult healthcare providers
-
-**Technical Requirements**:
-- Only checks medications with RxCUI codes (verified medications)
-- Requires internet connection for real-time API calls
-- No interaction data stored locally (privacy-focused)
-- Leverages ingredient-level analysis for combo drugs
+- Color-coded warnings with severity indicators
+- Detailed descriptions of potential issues
+- Non-blocking: users maintain full control
+- Educational disclaimers throughout
 
 **FDA Compliance**:
 - Informational tool only, not medical advice
@@ -186,7 +182,6 @@ Automatic detection of long-term maintenance medications:
 - **Pet profiles**: Track medications for pets
 - **Family members**: Manage medications for multiple people
 - **Multi-device sync**: Real-time sync across devices
-- **Data migration**: Move localStorage to Supabase
 
 ### v0.8.x - Cost Savings
 - **MySimpleRX integration**: Find discount coupons
@@ -202,7 +197,6 @@ Automatic detection of long-term maintenance medications:
 
 ### v1.0.x - Production Release
 - **PDF export**: Print medication list for doctors
-- **Interaction overview dashboard**: Summary of all current interactions
 - **OTC tracking**: Over-the-counter medications
 - **Supplement tracking**: Vitamins and supplements
 - **Sorting**: Sort by name, date, dosage, status

@@ -2,7 +2,7 @@
 
 Simple, secure medication tracking with smart autocomplete and verification.
 
-[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/aaroncapron/ClariMed)
+[![Version](https://img.shields.io/badge/version-0.9.0-blue.svg)](https://github.com/aaroncapron/ClariMed)
 [![License](https://img.shields.io/badge/license-TBD-lightgrey.svg)](LICENSE)
 
 ---
@@ -89,12 +89,13 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Roadmap
 
-**v0.6.x** [COMPLETE] - Authentication and data migration  
-**v0.7.x** [COMPLETE] - User profiles and allergy tracking  
-**v0.8.x** [IN PROGRESS] - Prescription savings coupons  
-**v0.9.x** - Multi-device sync and pet profiles  
-**v1.0.x** - Medication reminders and notifications  
-**v1.1.x** - Production release with PWA support
+**v0.6.x** [COMPLETE] - Authentication and user profiles  
+**v0.7.x** [COMPLETE] - Allergy tracking and health conditions  
+**v0.8.x** [COMPLETE] - Refill tracking and contraindication checking  
+**v0.9.x** [IN PROGRESS] - Surgical refactor (authentication-only, removed interactions/migration)  
+**v1.0.x** - Prescription savings coupons  
+**v1.1.x** - Medication reminders and notifications  
+**v1.2.x** - Production release with PWA support
 
 See [CHANGELOG.md](docs/CHANGELOG.md) for detailed version history.
 

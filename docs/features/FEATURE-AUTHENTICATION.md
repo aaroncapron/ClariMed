@@ -1,10 +1,12 @@
 # 🔐 Feature: Authentication & User Accounts
 
-**Status:** 🚧 In Development  
+**Status:** ✅ Completed (v0.6.0) - Auth system active  
 **Priority:** Critical - Foundation for all multi-user features  
 **Complexity:** Medium  
 **Started:** October 23, 2025  
-**Completed:** TBD
+**Completed:** October 28, 2025
+
+> **Note (November 2025):** localStorage migration and guest user features were removed in the surgical refactor (v0.9.1+). This document reflects the original v0.6.0 specification including those features. See CHANGELOG.md for current implementation details.
 
 ---
 
@@ -184,11 +186,19 @@ CREATE INDEX idx_medications_created_at ON medications(created_at DESC);
 lib/
   supabase/
     client.ts          # Supabase client initialization
+    server.ts          # Server-side Supabase client
     auth.ts            # Auth helper functions
-    database.types.ts  # TypeScript types from database schema
-  migrations/          # Database migration scripts
+    db.types.ts        # Clean TypeScript types from database schema
+  storage/
+    supabase.ts        # Medication CRUD operations
+    database.types.ts  # Local row type definitions
+    index.ts           # Storage layer entry point (Supabase-only)
+  allergies.ts         # Allergy checking with cross-reactivity
+  health-conditions.ts # Health condition CRUD and contraindication checking
+  contraindications.ts # Medical contraindication knowledge base
+  rxnav.ts             # RxNav API integration for drug search
 app/
-  (auth)/              # Auth pages route group
+  auth/                # Auth pages
     login/
       page.tsx         # Login page
     signup/
@@ -197,17 +207,27 @@ app/
       page.tsx         # Email verification page
     reset-password/
       page.tsx         # Password reset page
-  api/
-    auth/
-      callback/        # OAuth callback handler
-        route.ts
+    update-password/
+      page.tsx         # Password update page
+    callback/
+      route.ts         # Auth callback handler
+  dashboard/
+    page.tsx           # Main dashboard (medication list)
+    profile/
+      page.tsx         # User profile and health conditions
 contexts/
   AuthContext.tsx      # Auth state management
+  ViewModeContext.tsx  # Clarity/Clinical mode toggle
 components/
   auth/
     LoginForm.tsx      # Login form component
     SignupForm.tsx     # Signup form component
-    AuthGuard.tsx      # Protected route wrapper
+  AddMedicationForm.tsx       # Medication entry with DUR checks
+  MedicationList.tsx          # Medication display
+  ClarityMedicationCard.tsx   # Simplified view
+  ClinicalMedicationCard.tsx  # Detailed view with warnings
+  AllergyList.tsx             # Allergy management
+  HealthConditionList.tsx     # Health condition management
 ```
 
 ---

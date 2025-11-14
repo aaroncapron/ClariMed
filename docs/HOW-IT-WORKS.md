@@ -199,13 +199,12 @@ Much easier to read!
 
 ### **What ClariMed Does to Keep You Safe**
 1. **Verifies medication names** against the official database
-2. **Checks for drug-drug interactions** using real-time API calls to DrugBank
-3. **Detects allergy conflicts** by analyzing drug classes and ingredients via API
-4. **Warns about contraindications** for health conditions (when implemented)
-5. **Shows clear badges** so you know what's verified
-6. **Lets you override suggestions** - you're always in control
-7. **Stores data locally** - no one else can access it (except optional cloud sync)
-8. **Never gives medical advice** - just helps you track and provides educational information
+2. **Detects allergy conflicts** by analyzing drug classes and ingredients via API
+3. **Warns about contraindications** for health conditions (pregnancy, kidney disease, etc.)
+4. **Shows clear badges** so you know what's verified
+5. **Lets you override suggestions** - you're always in control
+6. **Stores data securely** - encrypted in Supabase database with Row Level Security
+7. **Never gives medical advice** - just helps you track and provides educational information
 
 ---
 
@@ -216,7 +215,7 @@ Much easier to read!
 - TypeScript for type safety
 - Tailwind CSS for pretty design
 - RxNav REST API for medication data
-- localStorage for data persistence
+- Supabase for secure database storage and authentication
 
 **Architecture:**
 ```
@@ -234,7 +233,7 @@ Shows you pretty list
     ↓
 You pick one
     ↓
-Saved to localStorage (your device)
+Saved to Supabase (encrypted database)
 ```
 
 ---
