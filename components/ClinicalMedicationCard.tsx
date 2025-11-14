@@ -48,10 +48,10 @@ export default function ClinicalMedicationCard({
 
   return (
     <div
-      className={`bg-white rounded-2xl border p-8 hover:shadow-xl transition-all ${
+      className={`rounded-2xl border p-8 hover:shadow-xl transition-all ${
         criticalCount > 0 || majorCount > 0
-          ? 'border-amber-300 hover:border-amber-400'
-          : 'border-gray-200 hover:border-blue-400'
+          ? 'bg-amber-50 border-amber-400 hover:border-amber-500'
+          : 'bg-white border-gray-200 hover:border-blue-400'
       }`}
     >
       <div className="flex justify-between items-start gap-6">

@@ -100,7 +100,7 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
   
   try {
     let response = await fetch(
-      `${RXNAV_BASE_URL}/drugs.json?name=${encodeURIComponent(query)}`
+      `${RXNAV_BASE_URL}/prescribe.json?name=${encodeURIComponent(query)}`
     );
     
     if (!response.ok) {

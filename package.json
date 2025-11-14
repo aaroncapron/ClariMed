@@ -9,7 +9,9 @@
     "lint": "next lint",
     "test": "jest --watch",
     "test:ci": "jest --ci --coverage",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "clean": "node scripts/clean-build.js",
+    "rebuild": "node scripts/clean-build.js && next build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

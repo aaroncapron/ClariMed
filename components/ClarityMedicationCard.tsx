@@ -37,10 +37,10 @@ export default function ClarityMedicationCard({
 
   return (
     <div
-      className={`bg-white rounded-xl border p-6 hover:shadow-lg transition-all ${
+      className={`rounded-xl border p-6 hover:shadow-lg transition-all ${
         hasCritical || hasMajor 
-          ? 'border-amber-300 hover:border-amber-400' 
-          : 'border-gray-200 hover:border-teal-300'
+          ? 'bg-amber-50 border-amber-400 hover:border-amber-500' 
+          : 'bg-white border-gray-200 hover:border-teal-300'
       }`}
     >
       <div className="flex justify-between items-center gap-4">
