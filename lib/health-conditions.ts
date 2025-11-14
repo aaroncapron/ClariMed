@@ -3,6 +3,7 @@
  */
 
 import type { HealthCondition, HealthConditionFormData } from '@/types';
+import type { HealthConditionRow } from './storage/database.types';
 import { createClient } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/supabase/auth';
 
@@ -23,7 +24,7 @@ async function getHealthConditionsFromSupabase(userId: string): Promise<HealthCo
     throw new Error('Failed to load health conditions');
   }
 
-  return (data || []).map((condition: any) => ({
+  return (data || []).map((condition: HealthConditionRow) => ({
     id: condition.id,
     user_id: condition.user_id,
     condition: condition.condition,
@@ -45,17 +46,19 @@ async function addHealthConditionToSupabase(
 ): Promise<HealthCondition> {
   const supabase = createClient();
 
-  const { data: inserted, error } = (await supabase
+  const insertData: Omit<HealthConditionRow, 'id' | 'created_at' | 'updated_at' | 'rxcui'> = {
+    user_id: userId,
+    condition: data.condition,
+    category: data.category,
+    diagnosed_date: data.diagnosed_date || null,
+    notes: data.notes || null,
+  };
+
+  const { data: inserted, error } = await supabase
     .from('health_conditions')
-    .insert({
-      user_id: userId,
-      condition: data.condition,
-      category: data.category,
-      diagnosed_date: data.diagnosed_date || null,
-      notes: data.notes || null,
-    } as any)
+    .insert(insertData)
     .select()
-    .single()) as any;
+    .single();
 
   if (error) {
     console.error('Error adding health condition to Supabase:', error);
@@ -85,20 +88,19 @@ async function updateHealthConditionInSupabase(
 ): Promise<HealthCondition> {
   const supabase = createClient();
 
-  const updateData: any = {};
+  const updateData: Partial<Omit<HealthConditionRow, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'rxcui'>> = {};
   if (data.condition !== undefined) updateData.condition = data.condition;
   if (data.category !== undefined) updateData.category = data.category;
   if (data.diagnosed_date !== undefined) updateData.diagnosed_date = data.diagnosed_date || null;
   if (data.notes !== undefined) updateData.notes = data.notes || null;
 
-  const { data: updated, error } = (await supabase
+  const { data: updated, error } = await supabase
     .from('health_conditions')
-    // @ts-expect-error - Supabase type inference issue with health_conditions table
     .update(updateData)
     .eq('id', id)
     .eq('user_id', userId)
     .select()
-    .single()) as any;
+    .single();
 
   if (error || !updated) {
     console.error('Error updating health condition in Supabase:', error);

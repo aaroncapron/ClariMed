@@ -3,6 +3,7 @@
  */
 
 import type { Allergy, AllergyFormData, Medication } from '@/types';
+import type { AllergyRow } from './storage/database.types';
 import { createClient } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/supabase/auth';
 import { getIngredients, getRelatedConcepts } from './rxnav';
@@ -27,7 +28,7 @@ async function getAllergiesFromSupabase(userId: string): Promise<Allergy[]> {
     throw new Error('Failed to load allergies');
   }
 
-  return (data || []).map((allergy: any) => ({
+  return (data || []).map((allergy: AllergyRow) => ({
     id: allergy.id,
     user_id: allergy.user_id,
     allergen: allergy.allergen,
@@ -96,21 +97,19 @@ async function updateAllergyInSupabase(
 ): Promise<Allergy> {
   const supabase = createClient();
 
-  const updateData: any = {};
+  const updateData: Partial<Omit<AllergyRow, 'id' | 'user_id' | 'created_at' | 'updated_at'>> = {};
   if (data.allergen !== undefined) updateData.allergen = data.allergen;
   if (data.rxcui !== undefined) updateData.rxcui = data.rxcui || null;
   if (data.severity !== undefined) updateData.severity = data.severity;
   if (data.reaction !== undefined) updateData.reaction = data.reaction || null;
 
-  // Supabase type inference issue with allergies table (safe to ignore)
-  const { data: updated, error } = (await supabase
+  const { data: updated, error } = await supabase
     .from('allergies')
-    // @ts-expect-error - Supabase type inference issue with allergies table
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', userId) // Security: ensure user owns this allergy
+    .eq('user_id', userId)
     .select()
-    .single()) as any;
+    .single();
 
   if (error || !updated) {
     console.error('Error updating allergy in Supabase:', error);

@@ -7,6 +7,21 @@
 
 const RXNAV_BASE_URL = 'https://rxnav.nlm.nih.gov/REST';
 
+export interface RxNavConceptProperty {
+  rxcui: string;
+  name: string;
+  synonym?: string;
+  tty?: string;
+  language?: string;
+  suppress?: string;
+}
+
+export interface RxNavCandidate {
+  rxcui: string;
+  rank?: string;
+  score?: string;
+}
+
 export interface DrugSearchResult {
   rxcui: string;
   name: string;
@@ -108,7 +123,7 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
       const candidates = approxData.approximateGroup?.candidate || [];
       
       const rxcuiSet = new Set<string>();
-      candidates.forEach((c: any) => {
+      candidates.forEach((c: RxNavCandidate) => {
         if (c.rxcui) rxcuiSet.add(c.rxcui);
       });
       const uniqueRxcuis = Array.from(rxcuiSet).slice(0, 5);
@@ -305,7 +320,7 @@ export async function getIngredients(rxcui: string): Promise<string[]> {
     
     for (const group of groups) {
       if (group.tty === 'IN' && group.conceptProperties) {
-        ingredients.push(...group.conceptProperties.map((c: any) => c.rxcui));
+        ingredients.push(...group.conceptProperties.map((c: RxNavConceptProperty) => c.rxcui));
       }
     }
     

@@ -16,7 +16,7 @@ describe('checkContraindications', () => {
     updatedAt: new Date().toISOString(),
   });
 
-  const createCondition = (condition: string, category: any): HealthCondition => ({
+  const createCondition = (condition: string, category: HealthCondition['category']): HealthCondition => ({
     id: '1',
     user_id: 'user-123',
     condition,
