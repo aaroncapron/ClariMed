@@ -1,20 +1,18 @@
 /**
  * Detailed, comprehensive medication card for Clinical mode
- * Shows all technical information, drug interactions, contraindications, and allergies
+ * Shows all technical information, contraindications, and allergies
  */
 
 'use client';
 
 import { useState } from 'react';
 import type { Medication, Allergy } from '@/types';
-import type { DrugInteraction } from '@/lib/interactions';
 import type { ContraindicationWarning } from '@/lib/contraindications';
-import { SEVERITY_COLORS, inferInteractionSeverity, getAllergySeverity } from '@/lib/severity-utils';
+import { SEVERITY_COLORS, getAllergySeverity } from '@/lib/severity-utils';
 import { getMedicationClass, getCommonUse, extractDosageForm } from '@/lib/drug-info-utils';
 
 interface ClinicalMedicationCardProps {
   medication: Medication;
-  interactions: DrugInteraction[];
   contraindications: ContraindicationWarning[];
   allergies: { allergy: Allergy; conflictingIngredient: string }[];
   onEdit: (med: Medication) => void;
@@ -23,21 +21,16 @@ interface ClinicalMedicationCardProps {
 
 export default function ClinicalMedicationCard({
   medication: med,
-  interactions,
   contraindications,
   allergies,
   onEdit,
   onDelete,
 }: ClinicalMedicationCardProps) {
-  const [isInteractionsExpanded, setIsInteractionsExpanded] = useState(false);
   const [isContraindicationsExpanded, setIsContraindicationsExpanded] = useState(false);
   const [isAllergiesExpanded, setIsAllergiesExpanded] = useState(false);
 
-  const interactionSeverities = interactions.map(i => inferInteractionSeverity(i));
-  const criticalCount = interactionSeverities.filter(s => s === 'critical').length +
-                       contraindications.filter(c => c.severity === 'critical').length;
-  const majorCount = interactionSeverities.filter(s => s === 'major').length +
-                    contraindications.filter(c => c.severity === 'major').length;
+  const criticalCount = contraindications.filter(c => c.severity === 'critical').length;
+  const majorCount = contraindications.filter(c => c.severity === 'major').length;
   
   const allergySeverities = allergies.map(a => getAllergySeverity(a.allergy));
   const highestAllergySeverity = allergySeverities.reduce((highest, current) => {
@@ -45,10 +38,7 @@ export default function ClinicalMedicationCard({
     return (order[current] || 0) > (order[highest] || 0) ? current : highest;
   }, 'minor' as 'critical' | 'major' | 'moderate' | 'minor');
   
-  const highestInteractionSeverity = interactionSeverities.reduce((highest, current) => {
-    const order = { critical: 4, major: 3, moderate: 2, minor: 1 };
-    return (order[current] || 0) > (order[highest] || 0) ? current : highest;
-  }, 'minor' as 'critical' | 'major' | 'moderate' | 'minor');
+
   
   const contraindicationSeverities = contraindications.map(c => c.severity);
   const highestContraindicationSeverity = contraindicationSeverities.reduce((highest, current) => {
@@ -101,21 +91,6 @@ export default function ClinicalMedicationCard({
                 {allergies.length} allergy alert{allergies.length !== 1 ? 's' : ''}
               </button>
             )}
-            {interactions.length > 0 && (
-              <button
-                onClick={() => setIsInteractionsExpanded(!isInteractionsExpanded)}
-                className={`inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full border transition-all ${
-                  SEVERITY_COLORS[highestInteractionSeverity].bgLight
-                } ${SEVERITY_COLORS[highestInteractionSeverity].textLight} ${
-                  SEVERITY_COLORS[highestInteractionSeverity].borderLight
-                } ${SEVERITY_COLORS[highestInteractionSeverity].hover}`}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                {interactions.length} interaction{interactions.length !== 1 ? 's' : ''}
-              </button>
-            )}
             {contraindications.length > 0 && (
               <button
                 onClick={() => setIsContraindicationsExpanded(!isContraindicationsExpanded)}
@@ -133,52 +108,6 @@ export default function ClinicalMedicationCard({
             )}
           </div>
           
-          {interactions.length > 0 && isInteractionsExpanded && (
-            <div className={`mb-4 p-4 border-2 rounded-xl space-y-3 ${
-              SEVERITY_COLORS[highestInteractionSeverity].bgLight
-            } ${SEVERITY_COLORS[highestInteractionSeverity].borderLight}`}>
-              <h4 className={`font-bold flex items-center gap-2 ${
-                SEVERITY_COLORS[highestInteractionSeverity].textLight
-              }`}>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                Interactions Detected
-              </h4>
-              {interactions.map((interaction, idx) => {
-                const severity = inferInteractionSeverity(interaction);
-                const severityLabel = severity.charAt(0).toUpperCase() + severity.slice(1);
-                
-                return (
-                  <div key={idx} className={`p-3 bg-white border rounded-lg ${
-                    SEVERITY_COLORS[severity].borderLight
-                  }`}>
-                    <div className="flex items-start gap-2 mb-2">
-                      <span className={`px-2 py-1 text-xs font-bold rounded border ${
-                        SEVERITY_COLORS[severity].bg
-                      } ${SEVERITY_COLORS[severity].text} ${
-                        SEVERITY_COLORS[severity].border
-                      }`}>
-                        {severityLabel}
-                      </span>
-                      <p className={`font-semibold text-sm ${
-                        SEVERITY_COLORS[severity].textLight
-                      }`}>
-                        Interacts with: {interaction.drugB.name}
-                      </p>
-                    </div>
-                    <p className={`text-sm ${SEVERITY_COLORS[severity].text}`}>
-                      {interaction.description}
-                    </p>
-                  </div>
-                );
-              })}
-              <p className={`text-xs pt-2 ${SEVERITY_COLORS[highestInteractionSeverity].text}`}>
-                Consult your healthcare provider about these interactions.
-              </p>
-            </div>
-          )}
-
           {contraindications.length > 0 && isContraindicationsExpanded && (
             <div className={`mb-4 p-4 border-2 rounded-xl space-y-3 ${
               SEVERITY_COLORS[highestContraindicationSeverity].bgLight

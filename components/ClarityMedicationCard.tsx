@@ -4,13 +4,11 @@
  */
 
 import type { Medication, Allergy } from '@/types';
-import type { DrugInteraction } from '@/lib/interactions';
 import type { ContraindicationWarning } from '@/lib/contraindications';
-import { SEVERITY_COLORS, inferInteractionSeverity, getAllergySeverity } from '@/lib/severity-utils';
+import { SEVERITY_COLORS, getAllergySeverity } from '@/lib/severity-utils';
 
 interface ClarityMedicationCardProps {
   medication: Medication;
-  interactions: DrugInteraction[];
   contraindications: ContraindicationWarning[];
   allergies: { allergy: Allergy; conflictingIngredient: string }[];
   onEdit: (med: Medication) => void;
@@ -19,17 +17,15 @@ interface ClarityMedicationCardProps {
 
 export default function ClarityMedicationCard({
   medication: med,
-  interactions,
   contraindications,
   allergies,
   onEdit,
   onDelete,
 }: ClarityMedicationCardProps) {
-  const interactionSeverities = interactions.map(i => inferInteractionSeverity(i));
   const contraindicationSeverities = contraindications.map(c => c.severity);
   const allergySeverities = allergies.map(a => getAllergySeverity(a.allergy));
   
-  const allSeverities = [...interactionSeverities, ...contraindicationSeverities, ...allergySeverities];
+  const allSeverities = [...contraindicationSeverities, ...allergySeverities];
   const hasCritical = allSeverities.includes('critical');
   const hasMajor = allSeverities.includes('major');
   const hasModerate = allSeverities.includes('moderate');
@@ -60,19 +56,6 @@ export default function ClarityMedicationCard({
                 SEVERITY_COLORS[highestAllergySeverity].border
               }`}>
                 {allergies.length} allergy alert{allergies.length !== 1 ? 's' : ''}
-              </span>
-            )}
-            {interactions.length > 0 && (
-              <span className={`px-2 py-1 text-xs font-bold rounded border ${
-                hasCritical
-                  ? `${SEVERITY_COLORS.critical.bg} ${SEVERITY_COLORS.critical.text} ${SEVERITY_COLORS.critical.border}`
-                  : hasMajor
-                  ? `${SEVERITY_COLORS.major.bg} ${SEVERITY_COLORS.major.text} ${SEVERITY_COLORS.major.border}`
-                  : hasModerate
-                  ? `${SEVERITY_COLORS.moderate.bg} ${SEVERITY_COLORS.moderate.text} ${SEVERITY_COLORS.moderate.border}`
-                  : `${SEVERITY_COLORS.minor.bg} ${SEVERITY_COLORS.minor.text} ${SEVERITY_COLORS.minor.border}`
-              }`}>
-                {interactions.length} interaction{interactions.length !== 1 ? 's' : ''}
               </span>
             )}
             {contraindications.length > 0 && (
