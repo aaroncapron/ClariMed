@@ -81,8 +81,9 @@ export function getSeverityBadge(severity: InteractionSeverity) {
 
 /**
  * Checks for drug interactions between two specific medications by RxCUI.
- * @param rxcui1 - RxCUI of first medication
- * @param rxcui2 - RxCUI of second medication
+ * Automatically converts drug product RxCUIs to ingredient RxCUIs for interaction checking.
+ * @param rxcui1 - RxCUI of first medication (can be product or ingredient)
+ * @param rxcui2 - RxCUI of second medication (can be product or ingredient)
  * @returns Array of drug interactions found
  */
 export async function checkDrugInteraction(
@@ -94,7 +95,21 @@ export async function checkDrugInteraction(
   }
 
   try {
-    const interactionData = await fetchInteractions([rxcui1, rxcui2]);
+    // Convert product RxCUIs to ingredient RxCUIs (required by interaction API)
+    const ingredients1 = await getIngredients(rxcui1);
+    const ingredients2 = await getIngredients(rxcui2);
+    
+    // If no ingredients found, the RxCUIs might already be ingredients, so try them directly
+    const rxcuisToCheck = [
+      ...(ingredients1.length > 0 ? ingredients1 : [rxcui1]),
+      ...(ingredients2.length > 0 ? ingredients2 : [rxcui2])
+    ];
+    
+    if (rxcuisToCheck.length < 2) {
+      return [];
+    }
+    
+    const interactionData = await fetchInteractions(rxcuisToCheck);
     
     if (!interactionData || interactionData.length === 0) {
       return [];
