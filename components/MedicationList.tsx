@@ -89,7 +89,6 @@ export default function MedicationList({ medications, onDelete, onEdit }: Medica
           <ClarityMedicationCard
             key={med.id}
             medication={med}
-            interactions={medicationInteractions.get(med.id) || []}
             contraindications={medicationContraindications.get(med.id) || []}
             allergies={medicationAllergies.get(med.id) || []}
             onEdit={onEdit}
@@ -106,7 +105,6 @@ export default function MedicationList({ medications, onDelete, onEdit }: Medica
         <ClinicalMedicationCard
           key={med.id}
           medication={med}
-          interactions={medicationInteractions.get(med.id) || []}
           contraindications={medicationContraindications.get(med.id) || []}
           allergies={medicationAllergies.get(med.id) || []}
           onEdit={onEdit}

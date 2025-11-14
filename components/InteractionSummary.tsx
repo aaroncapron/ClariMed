@@ -27,7 +27,7 @@ export default function InteractionSummary({ medications }: InteractionSummaryPr
             Drug Interaction Checking Temporarily Unavailable
           </p>
           <p className="text-sm text-gray-600 mt-1">
-            We're working on implementing a new data source for interaction checking. 
+            We&apos;re working on implementing a new data source for interaction checking. 
             Please consult your healthcare provider or pharmacist about potential interactions.
           </p>
         </div>

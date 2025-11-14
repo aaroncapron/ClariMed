@@ -2,7 +2,7 @@
  * Health condition management for authenticated users via Supabase.
  */
 
-import type { HealthCondition, HealthConditionFormData } from '@/types';
+import type { HealthCondition, HealthConditionFormData, HealthConditionCategory } from '@/types';
 import type { HealthConditionRow } from './storage/database.types';
 import { createClient } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/supabase/auth';
@@ -28,10 +28,10 @@ async function getHealthConditionsFromSupabase(userId: string): Promise<HealthCo
     id: condition.id,
     user_id: condition.user_id,
     condition: condition.condition,
-    category: condition.category,
+    category: condition.category as HealthConditionCategory,
     diagnosed_date: condition.diagnosed_date || undefined,
     notes: condition.notes || undefined,
-    rxcui: condition.rxcui || undefined,
+    rxcui: undefined,
     createdAt: condition.created_at,
     updatedAt: condition.updated_at,
   }));
@@ -46,15 +46,15 @@ async function addHealthConditionToSupabase(
 ): Promise<HealthCondition> {
   const supabase = createClient();
 
-  const insertData: Omit<HealthConditionRow, 'id' | 'created_at' | 'updated_at' | 'rxcui'> = {
+  const insertData: Omit<HealthConditionRow, 'id' | 'created_at' | 'updated_at'> = {
     user_id: userId,
     condition: data.condition,
-    category: data.category,
+    category: data.category as string,
     diagnosed_date: data.diagnosed_date || null,
     notes: data.notes || null,
   };
 
-  const { data: inserted, error } = await supabase
+  const { data: inserted, error } = await (supabase as any)
     .from('health_conditions')
     .insert(insertData)
     .select()
@@ -69,10 +69,10 @@ async function addHealthConditionToSupabase(
     id: inserted.id,
     user_id: inserted.user_id,
     condition: inserted.condition,
-    category: inserted.category,
+    category: inserted.category as HealthConditionCategory,
     diagnosed_date: inserted.diagnosed_date || undefined,
     notes: inserted.notes || undefined,
-    rxcui: inserted.rxcui || undefined,
+    rxcui: undefined,
     createdAt: inserted.created_at,
     updatedAt: inserted.updated_at,
   };
@@ -88,13 +88,13 @@ async function updateHealthConditionInSupabase(
 ): Promise<HealthCondition> {
   const supabase = createClient();
 
-  const updateData: Partial<Omit<HealthConditionRow, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'rxcui'>> = {};
+  const updateData: Partial<Omit<HealthConditionRow, 'id' | 'user_id' | 'created_at' | 'updated_at'>> = {};
   if (data.condition !== undefined) updateData.condition = data.condition;
-  if (data.category !== undefined) updateData.category = data.category;
+  if (data.category !== undefined) updateData.category = data.category as string;
   if (data.diagnosed_date !== undefined) updateData.diagnosed_date = data.diagnosed_date || null;
   if (data.notes !== undefined) updateData.notes = data.notes || null;
 
-  const { data: updated, error } = await supabase
+  const { data: updated, error } = await (supabase as any)
     .from('health_conditions')
     .update(updateData)
     .eq('id', id)
@@ -111,10 +111,10 @@ async function updateHealthConditionInSupabase(
     id: updated.id,
     user_id: updated.user_id,
     condition: updated.condition,
-    category: updated.category,
+    category: updated.category as HealthConditionCategory,
     diagnosed_date: updated.diagnosed_date || undefined,
     notes: updated.notes || undefined,
-    rxcui: updated.rxcui || undefined,
+    rxcui: undefined,
     createdAt: updated.created_at,
     updatedAt: updated.updated_at,
   };

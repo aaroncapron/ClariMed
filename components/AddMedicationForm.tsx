@@ -5,7 +5,6 @@ import type { Medication, Allergy } from '@/types';
 import { searchDrugs, parseDosage, parseForm, getSuggestedDirections, getSuggestedQuantity, type DrugSearchResult } from '@/lib/rxnav';
 import { isLikelyMaintenanceMed, getMaintenanceReason } from '@/lib/maintenance';
 import { checkAllergyConflictsAsync, getAllergies } from '@/lib/allergies';
-import { checkMedicationInteractions, getSeverityBadge, type DrugInteraction } from '@/lib/interactions';
 import { checkContraindications, type ContraindicationWarning } from '@/lib/contraindications';
 import { getHealthConditions } from '@/lib/health-conditions';
 
@@ -42,10 +41,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   // Allergy warning state
   const [allergyConflicts, setAllergyConflicts] = useState<{ allergy: Allergy; conflictingIngredient: string }[]>([]);
   const [isCheckingAllergies, setIsCheckingAllergies] = useState(false);
-  
-  // Drug interaction warning state
-  const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
-  const [isCheckingInteractions, setIsCheckingInteractions] = useState(false);
   
   // Contraindication warning state
   const [contraindications, setContraindications] = useState<ContraindicationWarning[]>([]);
@@ -121,7 +116,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     setMaintenanceReason(reason);
     
     checkForAllergyConflicts(medicationName, drug.rxcui);
-    checkForInteractions(medicationName, drug.rxcui);
     checkForContraindications(medicationName, drug.rxcui);
   };
   
@@ -157,33 +151,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       console.error('Error checking allergies:', err);
     } finally {
       setIsCheckingAllergies(false);
-    }
-  };
-  
-  /**
-   * Checks for drug interactions with existing medications.
-   * This is informational only and does not constitute medical advice.
-   */
-  const checkForInteractions = async (medicationName: string, rxcui?: string) => {
-    if (!rxcui || isEditing) {
-      setInteractions([]);
-      return;
-    }
-    
-    try {
-      setIsCheckingInteractions(true);
-      setInteractions([]);
-      
-      const foundInteractions = await checkMedicationInteractions(
-        { name: medicationName, rxcui },
-        existingMedications
-      );
-      
-      setInteractions(foundInteractions);
-    } catch (err) {
-      console.error('Error checking interactions:', err);
-    } finally {
-      setIsCheckingInteractions(false);
     }
   };
 
@@ -246,8 +213,8 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       last_pickup_date: lastPickupDate || undefined,
     };
 
-    // Check if there are any warnings (allergies, interactions, or contraindications)
-    const hasWarnings = allergyConflicts.length > 0 || interactions.length > 0 || contraindications.length > 0;
+    // Check if there are any warnings (allergies or contraindications)
+    const hasWarnings = allergyConflicts.length > 0 || contraindications.length > 0;
     
     if (hasWarnings && !isEditing) {
       // Show confirmation dialog
@@ -276,7 +243,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       setTotalRefills(undefined);
       setLastPickupDate('');
       setAllergyConflicts([]);
-      setInteractions([]);
       setContraindications([]);
       setShowConfirmDialog(false);
       setPendingSubmitData(null);
@@ -382,39 +348,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
                 </div>
               </div>
             ))}
-          </div>
-        )}
-        
-        {/* Drug Interaction Warnings */}
-        {interactions.length > 0 && (
-          <div className="space-y-3">
-            {interactions.map((interaction, index) => {
-              const badge = getSeverityBadge(interaction.severity);
-              return (
-                <div key={index} className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-bold text-amber-900">Potential Drug Interaction</h4>
-                        <span className={`px-2 py-1 text-xs font-semibold rounded border ${badge.color}`}>
-                          {badge.label}
-                        </span>
-                      </div>
-                      <p className="text-amber-800 mb-1">
-                        <span className="font-semibold">{interaction.drugB.name}</span>
-                      </p>
-                      <p className="text-amber-700 text-sm mb-3">{interaction.description}</p>
-                      <p className="text-xs text-amber-600 italic">
-                        This information is for educational purposes only. Always consult your healthcare provider about potential drug interactions before starting or stopping any medication.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         )}
 
@@ -645,29 +578,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
                     </p>
                   </div>
                 ))}
-
-                {interactions.map((interaction, index) => {
-                  const badge = getSeverityBadge(interaction.severity);
-                  return (
-                    <div key={index} className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl">
-                      <div className="flex items-start gap-2 mb-2">
-                        <h4 className="font-bold text-amber-900 flex items-center gap-2">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                          Drug Interaction
-                        </h4>
-                        <span className={`px-2 py-1 text-xs font-semibold rounded border ${badge.color}`}>
-                          {badge.label}
-                        </span>
-                      </div>
-                      <p className="text-amber-900 font-medium text-sm mb-1">
-                        Interacts with: {interaction.drugB.name}
-                      </p>
-                      <p className="text-amber-800 text-sm">{interaction.description}</p>
-                    </div>
-                  );
-                })}
 
                 {contraindications.map((warning, index) => {
                   const severityColors = {

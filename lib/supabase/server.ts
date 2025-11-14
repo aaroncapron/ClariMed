@@ -9,7 +9,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from './database.types'
+import type { Database } from './db.types'
 
 /**
  * Creates a Supabase client for server-side usage

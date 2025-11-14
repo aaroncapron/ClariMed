@@ -21,7 +21,7 @@ function mapRowToMedication(row: MedicationRow): Medication {
     verified: row.verified,
     isMaintenance: row.is_maintenance,
     therapeuticClass: row.therapeutic_class || undefined,
-    ingredients: row.ingredients || undefined,
+      ingredients: row.ingredients || undefined,
     refills_remaining: row.refills_remaining !== null ? row.refills_remaining : undefined,
     total_refills: row.total_refills !== null ? row.total_refills : undefined,
     next_refill_date: row.next_refill_date || undefined,
@@ -78,15 +78,14 @@ export async function addMedicationToSupabase(
     verified: data.verified || false,
     is_maintenance: data.isMaintenance || false,
     therapeutic_class: data.therapeuticClass || null,
-    ingredients: data.ingredients || null,
+    ingredients: data.ingredients ?? null,
     refills_remaining: data.refills_remaining !== undefined ? data.refills_remaining : null,
     total_refills: data.total_refills !== undefined ? data.total_refills : null,
+    last_fill_date: null,
     next_refill_date: data.next_refill_date || null,
     last_pickup_date: data.last_pickup_date || null,
     estimated_next_pickup: data.estimated_next_pickup || null,
-  };
-
-  const { data: inserted, error } = await supabase
+  };  const { data: inserted, error } = await (supabase as any)
     .from('medications')
     .insert(insertData)
     .select()
@@ -124,14 +123,14 @@ export async function updateMedicationInSupabase(
   if (data.verified !== undefined) updateData.verified = data.verified;
   if (data.isMaintenance !== undefined) updateData.is_maintenance = data.isMaintenance;
   if (data.therapeuticClass !== undefined) updateData.therapeutic_class = data.therapeuticClass || null;
-  if (data.ingredients !== undefined) updateData.ingredients = data.ingredients || null;
+    if (data.ingredients !== undefined) updateData.ingredients = data.ingredients ?? null;
   if (data.refills_remaining !== undefined) updateData.refills_remaining = data.refills_remaining !== undefined ? data.refills_remaining : null;
   if (data.total_refills !== undefined) updateData.total_refills = data.total_refills !== undefined ? data.total_refills : null;
   if (data.next_refill_date !== undefined) updateData.next_refill_date = data.next_refill_date || null;
   if (data.last_pickup_date !== undefined) updateData.last_pickup_date = data.last_pickup_date || null;
   if (data.estimated_next_pickup !== undefined) updateData.estimated_next_pickup = data.estimated_next_pickup || null;
 
-  const { data: updated, error } = await supabase
+    const { data: updated, error } = await (supabase as any)
     .from('medications')
     .update(updateData)
     .eq('id', id)

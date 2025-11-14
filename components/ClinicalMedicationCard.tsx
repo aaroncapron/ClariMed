@@ -255,14 +255,6 @@ export default function ClinicalMedicationCard({
                 <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Dosage Form</p>
                 <p className="text-sm font-bold text-gray-900">{extractDosageForm(med.name)}</p>
               </div>
-              
-              {med.rxcui && (
-                <div className="bg-white p-3 rounded-lg border border-blue-200">
-                  <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">RxNorm CUI</p>
-                  <p className="text-sm font-mono text-gray-900">{med.rxcui}</p>
-                  <p className="text-xs text-gray-500 mt-1">National drug code identifier</p>
-                </div>
-              )}
             </div>
             
             {med.ingredients && med.ingredients.length > 0 && (

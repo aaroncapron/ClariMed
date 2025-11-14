@@ -2,7 +2,7 @@
  * Allergy management for authenticated users via Supabase.
  */
 
-import type { Allergy, AllergyFormData, Medication } from '@/types';
+import type { Allergy, AllergyFormData, Medication, AllergySeverity } from '@/types';
 import type { AllergyRow } from './storage/database.types';
 import { createClient } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/supabase/auth';
@@ -33,7 +33,7 @@ async function getAllergiesFromSupabase(userId: string): Promise<Allergy[]> {
     user_id: allergy.user_id,
     allergen: allergy.allergen,
     rxcui: allergy.rxcui || undefined,
-    severity: allergy.severity,
+    severity: (allergy.severity as AllergySeverity) ?? 'moderate',
     reaction: allergy.reaction || undefined,
     created_at: allergy.created_at,
     updated_at: allergy.updated_at,
@@ -53,7 +53,7 @@ async function addAllergyToSupabase(
 ): Promise<Allergy> {
   const supabase = createClient();
 
-  const { data: inserted, error } = (await supabase
+  const { data: inserted, error } = (await (supabase as any)
     .from('allergies')
     .insert({
       user_id: userId,
@@ -61,7 +61,7 @@ async function addAllergyToSupabase(
       rxcui: data.rxcui || null,
       severity: data.severity,
       reaction: data.reaction || null,
-    } as any)
+    })
     .select()
     .single()) as any;
 
@@ -75,7 +75,7 @@ async function addAllergyToSupabase(
     user_id: inserted.user_id,
     allergen: inserted.allergen,
     rxcui: inserted.rxcui || undefined,
-    severity: inserted.severity,
+    severity: (inserted.severity as AllergySeverity) ?? 'moderate',
     reaction: inserted.reaction || undefined,
     created_at: inserted.created_at,
     updated_at: inserted.updated_at,
@@ -103,7 +103,7 @@ async function updateAllergyInSupabase(
   if (data.severity !== undefined) updateData.severity = data.severity;
   if (data.reaction !== undefined) updateData.reaction = data.reaction || null;
 
-  const { data: updated, error } = await supabase
+  const { data: updated, error } = await (supabase as any)
     .from('allergies')
     .update(updateData)
     .eq('id', id)
@@ -121,7 +121,7 @@ async function updateAllergyInSupabase(
     user_id: updated.user_id,
     allergen: updated.allergen,
     rxcui: updated.rxcui || undefined,
-    severity: updated.severity,
+    severity: (updated.severity as AllergySeverity) ?? 'moderate',
     reaction: updated.reaction || undefined,
     created_at: updated.created_at,
     updated_at: updated.updated_at,
