@@ -6,11 +6,10 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { Medication } from '@/types';
-import { getMedications, addMedication, updateMedication, deleteMedication, checkMigrationNeeded } from '@/lib/storage';
+import { getMedications, addMedication, updateMedication, deleteMedication } from '@/lib/storage';
 import MedicationList from '@/components/MedicationList';
 import AddMedicationForm from '@/components/AddMedicationForm';
 import FloatingViewToggle from '@/components/FloatingViewToggle';
-import MigrationBanner from '@/components/MigrationBanner';
 import InteractionSummary from '@/components/InteractionSummary';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -22,8 +21,6 @@ export default function DashboardPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showMigration, setShowMigration] = useState(false);
-  const [migrationCount, setMigrationCount] = useState(0);
   const formRef = useRef<HTMLDivElement>(null);
 
   // Redirect if not logged in
@@ -42,20 +39,7 @@ export default function DashboardPage() {
     loadMedications();
   }, []);
 
-  // Check if migration is needed
-  useEffect(() => {
-    async function checkMigration() {
-      if (!user) return;
 
-      const { needed, count } = await checkMigrationNeeded(user.id);
-      setShowMigration(needed);
-      setMigrationCount(count);
-    }
-    
-    if (user) {
-      checkMigration();
-    }
-  }, [user]);
 
   // Auto-scroll to form when it opens
   useEffect(() => {
@@ -174,20 +158,6 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="flex-1 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6 py-8">
-
-      {/* Migration Banner */}
-      {showMigration && user && (
-        <MigrationBanner
-          userId={user.id}
-          medicationCount={migrationCount}
-          onComplete={async () => {
-            setShowMigration(false);
-            // Reload medications after migration
-            const meds = await getMedications();
-            setMedications(meds);
-          }}
-        />
-      )}
 
       {/* Search Bar */}
       {!showForm && medications.length > 0 && (
