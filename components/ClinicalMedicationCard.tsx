@@ -38,8 +38,6 @@ export default function ClinicalMedicationCard({
     return (order[current] || 0) > (order[highest] || 0) ? current : highest;
   }, 'minor' as 'critical' | 'major' | 'moderate' | 'minor');
   
-
-  
   const contraindicationSeverities = contraindications.map(c => c.severity);
   const highestContraindicationSeverity = contraindicationSeverities.reduce((highest, current) => {
     const order = { critical: 4, major: 3, moderate: 2, minor: 1 };
@@ -215,68 +213,85 @@ export default function ClinicalMedicationCard({
             </div>
           )}
 
-          {/* Clinical Details Section */}
-          <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
-            <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Clinical Information
-            </h4>
+          {/* Clinical Details Section - show meaningful info or helpful message */}
+          {(() => {
+            const drugClass = getMedicationClass(med.name);
+            const commonUse = getCommonUse(med.name);
+            const hasRealDrugClass = drugClass && drugClass !== 'Prescription Medication' && drugClass !== 'Consult your healthcare provider for specific uses';
+            const hasRealCommonUse = commonUse && commonUse !== 'Consult your healthcare provider for specific uses';
+            const hasMeaningfulClinicalInfo = hasRealDrugClass || hasRealCommonUse || (med.ingredients && med.ingredients.length > 0) || med.therapeuticClass;
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {(() => {
-                const drugClass = getMedicationClass(med.name);
-                if (drugClass && drugClass !== 'Prescription Medication') {
-                  return (
+            // If no meaningful clinical info, show helpful disclaimer
+            if (!hasMeaningfulClinicalInfo) {
+              return (
+                <div className="mb-4 p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border-2 border-gray-200">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        Clinical information for this medication is not available in our database. 
+                        If you have questions about this medication, please speak with your local pharmacist or healthcare provider.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            return (
+              <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Clinical Information
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {hasRealDrugClass && (
                     <div className="bg-white p-3 rounded-lg border border-blue-200">
                       <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Drug Class</p>
                       <p className="text-sm text-gray-900">{drugClass}</p>
                     </div>
-                  );
-                }
-                return null;
-              })()}
-              
-              {(() => {
-                const commonUse = getCommonUse(med.name);
-                if (commonUse) {
-                  return (
+                  )}
+                  
+                  {hasRealCommonUse && (
                     <div className="bg-white p-3 rounded-lg border border-blue-200">
                       <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Common Use</p>
                       <p className="text-sm text-gray-900">{commonUse}</p>
                     </div>
-                  );
-                }
-                return null;
-              })()}
-              
-              <div className="bg-white p-3 rounded-lg border border-blue-200">
-                <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Dosage Form</p>
-                <p className="text-sm font-bold text-gray-900">{extractDosageForm(med.name)}</p>
-              </div>
-            </div>
-            
-            {med.ingredients && med.ingredients.length > 0 && (
-              <div className="mt-3 bg-white p-3 rounded-lg border border-blue-200">
-                <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Active Ingredients</p>
-                <div className="flex flex-wrap gap-2">
-                  {med.ingredients.map((ingredient, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full border border-blue-300">
-                      {ingredient}
-                    </span>
-                  ))}
+                  )}
+                  
+                  <div className="bg-white p-3 rounded-lg border border-blue-200">
+                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Dosage Form</p>
+                    <p className="text-sm font-bold text-gray-900">{extractDosageForm(med.name)}</p>
+                  </div>
                 </div>
+                
+                {med.ingredients && med.ingredients.length > 0 && (
+                  <div className="mt-3 bg-white p-3 rounded-lg border border-blue-200">
+                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Active Ingredients</p>
+                    <div className="flex flex-wrap gap-2">
+                      {med.ingredients.map((ingredient, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full border border-blue-300">
+                          {ingredient}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {med.therapeuticClass && (
+                  <div className="mt-3 bg-white p-3 rounded-lg border border-blue-200">
+                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Therapeutic Class (ATC Code)</p>
+                    <p className="text-sm font-mono text-gray-900">{med.therapeuticClass}</p>
+                  </div>
+                )}
               </div>
-            )}
-            
-            {med.therapeuticClass && (
-              <div className="mt-3 bg-white p-3 rounded-lg border border-blue-200">
-                <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Therapeutic Class (ATC Code)</p>
-                <p className="text-sm font-mono text-gray-900">{med.therapeuticClass}</p>
-              </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Prescription Details */}
           <div className="space-y-3 text-gray-700">

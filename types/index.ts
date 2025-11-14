@@ -7,7 +7,7 @@
 
 export interface Medication {
   id: string; // Simple UUID
-  name: string; // e.g., "Lisinopril 10 MG Oral Tablet" (includes strength from RxNav)
+  name: string; // e.g., "Lisinopril 10 MG Oral Tablet" (includes strength from RxNav)1
   quantity: string; // Quantity dispensed (e.g., "30 tablets", "1 patch box", "90 capsules")
   frequency: string; // Directions for use (e.g., "Take 1 tablet by mouth once daily", "Split tablet in half, take twice weekly")
   notes?: string; // Optional notes

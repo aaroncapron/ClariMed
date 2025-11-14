@@ -10,19 +10,19 @@
 export function getMedicationClass(medicationName: string): string {
   const name = medicationName.toLowerCase();
   
-  if (name.includes('statin') || name.includes('atorvastatin') || name.includes('simvastatin') || name.includes('rosuvastatin')) {
+  if (name.includes('statin')) {
     return 'Statin - Cholesterol-lowering medication';
   }
   
-  if (name.includes('pril') && (name.includes('lisinopril') || name.includes('enalapril') || name.includes('ramipril'))) {
+  if (name.includes('pril')) {
     return 'ACE Inhibitor - Blood pressure medication';
   }
   
-  if (name.includes('sartan') || name.includes('losartan') || name.includes('valsartan')) {
+  if (name.includes('sartan')) {
     return 'ARB (Angiotensin Receptor Blocker) - Blood pressure medication';
   }
   
-  if (name.includes('olol') || name.includes('metoprolol') || name.includes('atenolol') || name.includes('carvedilol')) {
+  if (name.includes('olol')) {
     return 'Beta Blocker - Heart and blood pressure medication';
   }
   
@@ -30,11 +30,11 @@ export function getMedicationClass(medicationName: string): string {
     return 'Diuretic - Water pill for blood pressure';
   }
   
-  if (name.includes('prazole') || name.includes('omeprazole') || name.includes('pantoprazole')) {
+  if (name.includes('prazole')) {
     return 'Proton Pump Inhibitor - Reduces stomach acid';
   }
   
-  if (name.includes('sertraline') || name.includes('fluoxetine') || name.includes('escitalopram') || name.includes('citalopram')) {
+  if (name.includes('sertraline') || name.includes('fluoxetine') || name.includes('pram')) {
     return 'SSRI - Antidepressant';
   }
   
@@ -54,7 +54,7 @@ export function getMedicationClass(medicationName: string): string {
     return 'Antibiotic - Fights bacterial infections';
   }
   
-  return 'Prescription Medication';
+  return ' ';
 }
 
 /**
@@ -63,11 +63,11 @@ export function getMedicationClass(medicationName: string): string {
 export function getCommonUse(medicationName: string): string {
   const name = medicationName.toLowerCase();
   
-  if (name.includes('statin') || name.includes('atorvastatin') || name.includes('simvastatin')) {
+  if (name.includes('statin')) {
     return 'Lower cholesterol and reduce heart disease risk';
   }
   
-  if (name.includes('pril') && (name.includes('lisinopril') || name.includes('enalapril'))) {
+  if (name.includes('pril')) {
     return 'Lower blood pressure and protect kidneys';
   }
   
