@@ -4,7 +4,33 @@
  */
 
 import type { Medication } from '@/types';
+import type { MedicationRow } from './database.types';
 import { createClient } from '@/lib/supabase/client';
+
+/**
+ * Maps database row to frontend Medication type.
+ */
+function mapRowToMedication(row: MedicationRow): Medication {
+  return {
+    id: row.id,
+    name: row.name,
+    quantity: row.quantity || '',
+    frequency: row.frequency,
+    notes: row.notes || undefined,
+    rxcui: row.rxcui || undefined,
+    verified: row.verified,
+    isMaintenance: row.is_maintenance,
+    therapeuticClass: row.therapeutic_class || undefined,
+    ingredients: row.ingredients || undefined,
+    refills_remaining: row.refills_remaining !== null ? row.refills_remaining : undefined,
+    total_refills: row.total_refills !== null ? row.total_refills : undefined,
+    next_refill_date: row.next_refill_date || undefined,
+    last_pickup_date: row.last_pickup_date || undefined,
+    estimated_next_pickup: row.estimated_next_pickup || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
 /**
  * Retrieves all medications for an authenticated user from Supabase.
@@ -26,26 +52,7 @@ export async function getMedicationsFromSupabase(userId: string): Promise<Medica
     throw new Error('Failed to load medications');
   }
 
-  // Map database fields to frontend format
-  return (data || []).map((med: any) => ({
-    id: med.id,
-    name: med.name,
-    quantity: med.quantity || '',
-    frequency: med.frequency,
-    notes: med.notes || undefined,
-    rxcui: med.rxcui || undefined,
-    verified: med.verified || false,
-    isMaintenance: med.is_maintenance || false,
-    therapeuticClass: med.therapeutic_class || undefined,
-    ingredients: med.ingredients || undefined,
-    refills_remaining: med.refills_remaining !== null ? med.refills_remaining : undefined,
-    total_refills: med.total_refills !== null ? med.total_refills : undefined,
-    next_refill_date: med.next_refill_date || undefined,
-    last_pickup_date: med.last_pickup_date || undefined,
-    estimated_next_pickup: med.estimated_next_pickup || undefined,
-    createdAt: med.created_at,
-    updatedAt: med.updated_at,
-  }));
+  return (data || []).map(mapRowToMedication);
 }
 
 /**
@@ -61,25 +68,27 @@ export async function addMedicationToSupabase(
 ): Promise<Medication> {
   const supabase = createClient();
 
+  const insertData: Omit<MedicationRow, 'id' | 'created_at' | 'updated_at'> = {
+    user_id: userId,
+    name: data.name,
+    quantity: data.quantity || null,
+    frequency: data.frequency,
+    notes: data.notes || null,
+    rxcui: data.rxcui || null,
+    verified: data.verified || false,
+    is_maintenance: data.isMaintenance || false,
+    therapeutic_class: data.therapeuticClass || null,
+    ingredients: data.ingredients || null,
+    refills_remaining: data.refills_remaining !== undefined ? data.refills_remaining : null,
+    total_refills: data.total_refills !== undefined ? data.total_refills : null,
+    next_refill_date: data.next_refill_date || null,
+    last_pickup_date: data.last_pickup_date || null,
+    estimated_next_pickup: data.estimated_next_pickup || null,
+  };
+
   const { data: inserted, error } = await supabase
     .from('medications')
-    .insert({
-      user_id: userId,
-      name: data.name,
-      quantity: data.quantity || null,
-      frequency: data.frequency,
-      notes: data.notes || null,
-      rxcui: data.rxcui || null,
-      verified: data.verified || false,
-      is_maintenance: data.isMaintenance || false,
-      therapeutic_class: data.therapeuticClass || null,
-      ingredients: data.ingredients || null,
-      refills_remaining: data.refills_remaining !== undefined ? data.refills_remaining : null,
-      total_refills: data.total_refills !== undefined ? data.total_refills : null,
-      next_refill_date: data.next_refill_date || null,
-      last_pickup_date: data.last_pickup_date || null,
-      estimated_next_pickup: data.estimated_next_pickup || null,
-    } as any)
+    .insert(insertData)
     .select()
     .single();
 
@@ -88,26 +97,7 @@ export async function addMedicationToSupabase(
     throw new Error('Failed to add medication');
   }
 
-  const med: any = inserted;
-  return {
-    id: med.id,
-    name: med.name,
-    quantity: med.quantity || '',
-    frequency: med.frequency,
-    notes: med.notes || undefined,
-    rxcui: med.rxcui || undefined,
-    verified: med.verified || false,
-    isMaintenance: med.is_maintenance || false,
-    therapeuticClass: med.therapeutic_class || undefined,
-    ingredients: med.ingredients || undefined,
-    refills_remaining: med.refills_remaining !== null ? med.refills_remaining : undefined,
-    total_refills: med.total_refills !== null ? med.total_refills : undefined,
-    next_refill_date: med.next_refill_date || undefined,
-    last_pickup_date: med.last_pickup_date || undefined,
-    estimated_next_pickup: med.estimated_next_pickup || undefined,
-    createdAt: med.created_at,
-    updatedAt: med.updated_at,
-  };
+  return mapRowToMedication(inserted as MedicationRow);
 }
 
 /**
@@ -125,7 +115,7 @@ export async function updateMedicationInSupabase(
 ): Promise<Medication> {
   const supabase = createClient();
 
-  const updateData: any = {};
+  const updateData: Partial<Omit<MedicationRow, 'id' | 'user_id' | 'created_at' | 'updated_at'>> = {};
   if (data.name !== undefined) updateData.name = data.name;
   if (data.quantity !== undefined) updateData.quantity = data.quantity || null;
   if (data.frequency !== undefined) updateData.frequency = data.frequency;
@@ -141,39 +131,20 @@ export async function updateMedicationInSupabase(
   if (data.last_pickup_date !== undefined) updateData.last_pickup_date = data.last_pickup_date || null;
   if (data.estimated_next_pickup !== undefined) updateData.estimated_next_pickup = data.estimated_next_pickup || null;
 
-  const { data: updated, error } = (await (supabase
-    .from('medications') as any)
+  const { data: updated, error } = await supabase
+    .from('medications')
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', userId) // Security: ensure user owns this medication
+    .eq('user_id', userId)
     .select()
-    .single()) as any;
+    .single();
 
   if (error) {
     console.error('Error updating medication in Supabase:', error);
     throw new Error('Failed to update medication');
   }
 
-  const med: any = updated;
-  return {
-    id: med.id,
-    name: med.name,
-    quantity: med.quantity || '',
-    frequency: med.frequency,
-    notes: med.notes || undefined,
-    rxcui: med.rxcui || undefined,
-    verified: med.verified || false,
-    isMaintenance: med.is_maintenance || false,
-    therapeuticClass: med.therapeutic_class || undefined,
-    ingredients: med.ingredients || undefined,
-    refills_remaining: med.refills_remaining !== null ? med.refills_remaining : undefined,
-    total_refills: med.total_refills !== null ? med.total_refills : undefined,
-    next_refill_date: med.next_refill_date || undefined,
-    last_pickup_date: med.last_pickup_date || undefined,
-    estimated_next_pickup: med.estimated_next_pickup || undefined,
-    createdAt: med.created_at,
-    updatedAt: med.updated_at,
-  };
+  return mapRowToMedication(updated as MedicationRow);
 }
 
 /**
