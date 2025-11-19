@@ -121,9 +121,9 @@ async function getIndicationsFromSPL(setId: string): Promise<string | null> {
             .replace(/\s+/g, ' ')       // Normalize whitespace
             .trim();
 
-          // Return first sentence or first 150 characters
+          // Return first sentence or first 150 characters (whichever is shorter)
           const firstSentence = cleaned.match(/^[^.!?]+[.!?]/);
-          if (firstSentence) {
+          if (firstSentence && firstSentence[0].length <= 150) {
             return firstSentence[0].trim();
           }
           

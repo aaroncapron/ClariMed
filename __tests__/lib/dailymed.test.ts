@@ -88,11 +88,7 @@ describe('DailyMed API Integration', () => {
     });
 
     it('should handle API errors gracefully', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 404
-      });
-
+      // Only need 1 mock - no drugName means no fallback attempt
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 404
@@ -226,11 +222,7 @@ describe('DailyMed API Integration', () => {
     });
 
     it('should return null if no drug class found', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ data: [] })
-      });
-
+      // Only need 1 mock - no drugName means no fallback attempt
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ data: [] })
