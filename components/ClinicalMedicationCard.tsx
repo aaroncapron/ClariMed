@@ -5,11 +5,12 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Medication, Allergy } from '@/types';
 import type { ContraindicationWarning } from '@/lib/contraindications';
 import { SEVERITY_COLORS, getAllergySeverity } from '@/lib/severity-utils';
-import { getMedicationClass, getCommonUse, extractDosageForm } from '@/lib/drug-info-utils';
+import { getDrugClass, getCommonUse } from '@/lib/drug-info';
+import { extractDosageForm } from '@/lib/drug-info-utils';
 
 interface ClinicalMedicationCardProps {
   medication: Medication;
@@ -28,6 +29,9 @@ export default function ClinicalMedicationCard({
 }: ClinicalMedicationCardProps) {
   const [isContraindicationsExpanded, setIsContraindicationsExpanded] = useState(false);
   const [isAllergiesExpanded, setIsAllergiesExpanded] = useState(false);
+  const [drugClass, setDrugClass] = useState<string>('');
+  const [commonUse, setCommonUse] = useState<string>('');
+  const [isLoadingDrugInfo, setIsLoadingDrugInfo] = useState<boolean>(true);
 
   const criticalCount = contraindications.filter(c => c.severity === 'critical').length;
   const majorCount = contraindications.filter(c => c.severity === 'major').length;
@@ -43,6 +47,42 @@ export default function ClinicalMedicationCard({
     const order = { critical: 4, major: 3, moderate: 2, minor: 1 };
     return (order[current] || 0) > (order[highest] || 0) ? current : highest;
   }, 'minor' as 'critical' | 'major' | 'moderate' | 'minor');
+
+  // Fetch drug information using cascade system
+  useEffect(() => {
+    let isMounted = true;
+    
+    async function fetchDrugInfo() {
+      setIsLoadingDrugInfo(true);
+      try {
+        const [classResult, useResult] = await Promise.all([
+          getDrugClass(med.rxcui, med.name),
+          getCommonUse(med.rxcui, med.name)
+        ]);
+        
+        if (isMounted) {
+          setDrugClass(classResult);
+          setCommonUse(useResult);
+        }
+      } catch (error) {
+        console.error('Error fetching drug info:', error);
+        if (isMounted) {
+          setDrugClass('');
+          setCommonUse('');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingDrugInfo(false);
+        }
+      }
+    }
+    
+    fetchDrugInfo();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [med.rxcui, med.name]);
 
   return (
     <div
@@ -215,11 +255,21 @@ export default function ClinicalMedicationCard({
 
           {/* Clinical Details Section - show meaningful info or helpful message */}
           {(() => {
-            const drugClass = getMedicationClass(med.name);
-            const commonUse = getCommonUse(med.name);
-            const hasRealDrugClass = drugClass && drugClass !== 'Prescription Medication' && drugClass !== 'Consult your healthcare provider for specific uses';
-            const hasRealCommonUse = commonUse && commonUse !== 'Consult your healthcare provider for specific uses';
+            const hasRealDrugClass = drugClass && drugClass !== '';
+            const hasRealCommonUse = commonUse && commonUse !== '';
             const hasMeaningfulClinicalInfo = hasRealDrugClass || hasRealCommonUse || (med.ingredients && med.ingredients.length > 0) || med.therapeuticClass;
+            
+            // Show loading state while fetching
+            if (isLoadingDrugInfo) {
+              return (
+                <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-gray-600">Loading clinical information...</p>
+                  </div>
+                </div>
+              );
+            }
             
             // If no meaningful clinical info, show helpful disclaimer
             if (!hasMeaningfulClinicalInfo) {
@@ -306,8 +356,8 @@ export default function ClinicalMedicationCard({
             {med.refills_remaining !== undefined && (
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-blue-700">Refills:</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  med.refills_remaining === 0 
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  med.refills_remaining === 0
                     ? 'bg-red-100 text-red-800 border border-red-300'
                     : med.refills_remaining === 1
                     ? 'bg-amber-100 text-amber-800 border border-amber-300'
@@ -322,7 +372,7 @@ export default function ClinicalMedicationCard({
             )}
             {med.last_pickup_date && (
               <p className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="font-semibold">Last picked up:</span> 
+                <span className="font-semibold">Last picked up:</span>
                 <span>{new Date(med.last_pickup_date).toLocaleDateString()}</span>
               </p>
             )}
@@ -333,10 +383,10 @@ export default function ClinicalMedicationCard({
             )}
           </div>
           <div className="mt-4 text-sm text-gray-400">
-            Added {new Date(med.createdAt).toLocaleDateString('en-US', { 
-              month: 'long', 
-              day: 'numeric', 
-              year: 'numeric' 
+            Added {new Date(med.createdAt).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
             })}
           </div>
         </div>
