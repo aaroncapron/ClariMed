@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { Medication, Allergy } from '@/types';
-import { searchDrugs, parseDosage, parseForm, getSuggestedDirections, getSuggestedQuantity, type DrugSearchResult } from '@/lib/rxnav';
+import { searchDrugs, parseDosage, parseForm, getSuggestedQuantity, type DrugSearchResult } from '@/lib/rxnav';
 import { isLikelyMaintenanceMed, getMaintenanceReason } from '@/lib/maintenance';
 import { checkAllergyConflictsAsync, getAllergies } from '@/lib/allergies';
 import { checkContraindications, type ContraindicationWarning } from '@/lib/contraindications';
@@ -35,7 +35,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   const [selectedRxcui, setSelectedRxcui] = useState<string | undefined>(initialData?.rxcui);
   const [maintenanceReason, setMaintenanceReason] = useState<string | null>(null);
   const [justSelected, setJustSelected] = useState(false);
-  const [suggestedDirections, setSuggestedDirections] = useState<string>('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Allergy warning state
@@ -93,21 +92,15 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
     setShowDropdown(false);
     setJustSelected(true);
     
-    // Get suggested directions (using parsed dosage for context)
+    // Get suggested quantity (but NOT directions - user must provide their own)
     const extractedStrength = parseDosage(drug.name);
-    const suggested = getSuggestedDirections(drug.name, extractedStrength);
-    setSuggestedDirections(suggested);
-    
-    // Get suggested quantity
-    const suggestedQty = getSuggestedQuantity(drug.name, suggested);
+    const suggestedQty = getSuggestedQuantity(drug.name, '');
     if (suggestedQty) {
       setQuantity(suggestedQty);
     }
     
-    // Auto-populate directions if empty
-    if (!frequency && suggested) {
-      setFrequency(suggested);
-    }
+    // CRITICAL: Never auto-populate directions - this would be medical advice
+    // User must enter their prescribed directions from their healthcare provider
     
     const isMaintenanceDrug = isLikelyMaintenanceMed(medicationName);
     setIsMaintenance(isMaintenanceDrug);
@@ -238,7 +231,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
       setSelectedRxcui(undefined);
       setIsMaintenance(false);
       setMaintenanceReason(null);
-      setSuggestedDirections('');
       setRefillsRemaining(undefined);
       setTotalRefills(undefined);
       setLastPickupDate('');
@@ -387,21 +379,6 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
           <p className="text-sm text-gray-500 mt-1">
             How to take this medication (e.g., &quot;Take 2 capsules weekly&quot; or &quot;Split tablet in half, take with food&quot;)
           </p>
-          {suggestedDirections && suggestedDirections !== frequency && (
-            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <span className="font-semibold">💡 Suggested directions: </span>
-                {suggestedDirections}
-              </p>
-              <button
-                type="button"
-                onClick={() => setFrequency(suggestedDirections)}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium underline"
-              >
-                Use this suggestion
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Maintenance Medication Checkbox */}
