@@ -535,6 +535,205 @@ export function getSuggestedDirections(
 }
 
 /**
+ * Formulation data structure for edit modal dropdowns.
+ */
+export interface DrugFormulation {
+  rxcui: string;
+  name: string;
+  strength: string;
+  form: string;
+  tty: 'SCD' | 'SBD';
+  isBrand: boolean;
+}
+
+export interface AvailableFormulations {
+  strengths: string[];
+  forms: string[];
+  formulations: DrugFormulation[];
+  quantityOptions: { value: number; label: string }[];
+}
+
+/**
+ * Generates smart quantity options based on medication form.
+ * Matches GoodRx pattern of form-specific quantities.
+ */
+function getQuantityOptionsForForm(form: string): { value: number; label: string }[] {
+  const formLower = form.toLowerCase();
+  
+  // Injectables (vials, syringes, pens)
+  if (/vial|syringe|ampul|injection|cartridge/i.test(formLower)) {
+    return [
+      { value: 1, label: '1' },
+      { value: 2, label: '2' },
+      { value: 4, label: '4' },
+      { value: 6, label: '6' },
+      { value: 10, label: '10' }
+    ];
+  }
+  
+  // Pen injectors (insulin, GLP-1s)
+  if (/pen|autoinjector|prefilled/i.test(formLower)) {
+    return [
+      { value: 1, label: '1 carton' },
+      { value: 2, label: '2 cartons' },
+      { value: 3, label: '3 cartons' }
+    ];
+  }
+  
+  // Patches
+  if (/patch|transdermal/i.test(formLower)) {
+    return [
+      { value: 4, label: '4 patches' },
+      { value: 8, label: '8 patches' },
+      { value: 12, label: '12 patches' },
+      { value: 30, label: '30 patches' }
+    ];
+  }
+  
+  // Inhalers
+  if (/inhaler|aerosol|inhalation/i.test(formLower)) {
+    return [
+      { value: 1, label: '1 inhaler' },
+      { value: 2, label: '2 inhalers' },
+      { value: 3, label: '3 inhalers' }
+    ];
+  }
+  
+  // Topicals (creams, ointments, gels)
+  if (/cream|ointment|gel|lotion|foam/i.test(formLower)) {
+    return [
+      { value: 1, label: '1 tube' },
+      { value: 2, label: '2 tubes' },
+      { value: 3, label: '3 tubes' }
+    ];
+  }
+  
+  // Liquids (solutions, suspensions, syrups)
+  if (/solution|suspension|syrup|liquid|elixir/i.test(formLower)) {
+    return [
+      { value: 1, label: '1 bottle' },
+      { value: 2, label: '2 bottles' },
+      { value: 3, label: '3 bottles' }
+    ];
+  }
+  
+  // Tablets and Capsules (most common)
+  // Mix of short-term (antibiotics) and long-term (maintenance) quantities
+  const unit = /capsule/i.test(formLower) ? 'capsules' : 'tablets';
+  return [
+    { value: 6, label: `6 ${unit}` },
+    { value: 10, label: `10 ${unit}` },
+    { value: 14, label: `14 ${unit}` },
+    { value: 20, label: `20 ${unit}` },
+    { value: 30, label: `30 ${unit}` },
+    { value: 60, label: `60 ${unit}` },
+    { value: 90, label: `90 ${unit}` },
+    { value: 180, label: `180 ${unit}` }
+  ];
+}
+
+/**
+ * Gets all available formulations (strengths, forms) for a drug.
+ * Used to populate edit modal dropdowns with all available options.
+ * @param rxcui - Drug product or ingredient RxCUI
+ * @returns Object with unique strengths, forms, and formulation details
+ */
+export async function getAvailableFormulations(rxcui: string): Promise<AvailableFormulations> {
+  const defaultResult: AvailableFormulations = {
+    strengths: [],
+    forms: [],
+    formulations: [],
+    quantityOptions: [
+      { value: 30, label: '30 tablets' },
+      { value: 60, label: '60 tablets' },
+      { value: 90, label: '90 tablets' }
+    ]
+  };
+
+  if (!rxcui) return defaultResult;
+
+  try {
+    // First, check if this is an ingredient or product
+    const details = await getDrugDetails(rxcui);
+    if (!details) return defaultResult;
+
+    // Get all related SCD and SBD products
+    const response = await fetch(
+      `${RXNAV_BASE_URL}/rxcui/${rxcui}/related.json?tty=SCD+SBD`
+    );
+
+    if (!response.ok) {
+      console.warn(`RxNav related formulations error: ${response.status}`);
+      return defaultResult;
+    }
+
+    const data = await response.json();
+    const conceptGroups = data.relatedGroup?.conceptGroup || [];
+
+    const formulations: DrugFormulation[] = [];
+    const strengthsSet = new Set<string>();
+    const formsSet = new Set<string>();
+
+    for (const group of conceptGroups) {
+      if ((group.tty === 'SCD' || group.tty === 'SBD') && group.conceptProperties) {
+        for (const drug of group.conceptProperties) {
+          const strength = parseDosage(drug.name);
+          const form = parseForm(drug.name);
+
+          if (strength) strengthsSet.add(strength);
+          if (form) formsSet.add(form);
+
+          formulations.push({
+            rxcui: drug.rxcui,
+            name: drug.name,
+            strength: strength || '',
+            form: form || '',
+            tty: group.tty as 'SCD' | 'SBD',
+            isBrand: group.tty === 'SBD'
+          });
+        }
+      }
+    }
+
+    // Sort strengths numerically (extract first number and sort)
+    const strengths = Array.from(strengthsSet).sort((a, b) => {
+      const numA = parseFloat(a.match(/[\d.]+/)?.[0] || '0');
+      const numB = parseFloat(b.match(/[\d.]+/)?.[0] || '0');
+      return numA - numB;
+    });
+
+    // Sort forms by priority (Tablet, Capsule, etc.)
+    const forms = Array.from(formsSet).sort((a, b) => {
+      const priority: Record<string, number> = {
+        'Oral Tablet': 1,
+        'Tablet': 1,
+        'Oral Capsule': 2,
+        'Capsule': 2,
+        'Oral Solution': 3,
+        'Solution': 3
+      };
+      const prioA = priority[a] || 10;
+      const prioB = priority[b] || 10;
+      return prioA - prioB;
+    });
+
+    // Generate smart quantity options based on primary form
+    const primaryForm = forms[0] || 'Oral Tablet';
+    const quantityOptions = getQuantityOptionsForForm(primaryForm);
+
+    return {
+      strengths,
+      forms,
+      formulations,
+      quantityOptions
+    };
+  } catch (error) {
+    console.error('Error getting available formulations:', error);
+    return defaultResult;
+  }
+}
+
+/**
  * Suggests a typical quantity format based on medication form and frequency.
  * @param medicationName - Full medication name
  * @param directions - Directions for use
@@ -580,11 +779,14 @@ export function getSuggestedQuantity(
     return '1 inhaler';
   }
   
-  // Injections
-  if (/\binjection\b/i.test(nameLower)) {
-    if (nameLower.includes('insulin')) {
-      return '3 pens'; // Typical 90-day supply
-    }
+  // Pen Injectors (GLP-1s like Ozempic, Wegovy, insulin pens) - check BEFORE generic injection
+  // Pharmacies dispense by carton (typically 3-5 pens per box)
+  if (/\bpen\b|\bpen injector\b|\bprefilled\b|\bautoinjector\b/i.test(nameLower)) {
+    return '1 carton'; // GLP-1s and insulin pens dispensed by carton/box
+  }
+  
+  // Injections (vials, syringes)
+  if (/\binjection\b|\binjectable\b|\bvial\b/i.test(nameLower)) {
     return '1 vial';
   }
   
