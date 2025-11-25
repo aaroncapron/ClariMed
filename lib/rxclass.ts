@@ -164,6 +164,7 @@ function extractClassInfo(drugInfoList: any[]): DrugClassInfo | null {
 /**
  * Blacklist of terms that indicate side effects, adverse reactions, contraindications,
  * or risk factors - not therapeutic indications. These should be filtered out from display.
+ * EXPANDED: Now includes alarming/confusing clinical terms for patient-facing safety.
  */
 const SIDE_EFFECT_TERMS = [
   // Hypersensitivity and allergic reactions
@@ -225,12 +226,126 @@ const SIDE_EFFECT_TERMS = [
   'respiratory depression',
   'bone marrow suppression',
   'pancreatitis',
-  'myopathy'
+  'myopathy',
+  
+  // PATIENT-FACING FILTERS (NEW):
+  // Alarming/confusing clinical terms
+  'threatened',              // "abortion, threatened" for warfarin
+  'insufficiency',           // Often contraindications listed as treatments
+  'renal failure',           // Be specific - filter organ failures but allow "heart failure"
+  'kidney failure',
+  'liver failure',
+  'respiratory failure',
+  'radioactive',             // Diagnostic procedures, not treatments
+  'diagnostic',              // Diagnostic procedures
+  'diagnostic agent',
+  
+  // Contradictory/misleading terms
+  'alcoholism',              // Not appropriate for patient-facing display
+  'drug abuse',
+  'substance abuse',
+  
+  // Too technical/rare conditions that confuse patients
+  'aneurysm',                // Warfarin example - rare use
+  'coagulopathy',
+  'disseminated intravascular coagulation',
+  
+  // Pregnancy-related clinical terms that are alarming
+  'abortion',                // Medical term for miscarriage - alarming to patients
+  'fetal death',
+  'stillbirth'
 ];
+
+/**
+ * Medical terms to translate to patient-friendly language.
+ * Maps clinical ICD-10 terminology to plain English.
+ */
+const MEDICAL_TERM_TRANSLATIONS: Record<string, string> = {
+  // Cardiovascular
+  'hypertension': 'high blood pressure',
+  'hypertensive disease': 'high blood pressure',
+  'hypotension': 'low blood pressure',
+  'heart failure': 'heart failure',  // Normalize capitalization
+  'atrial fibrillation': 'irregular heartbeat (AFib)',
+  'coronary artery disease': 'heart disease',
+  'myocardial infarction': 'heart attack',
+  'angina pectoris': 'chest pain',
+  
+  // Endocrine/Metabolic
+  'diabetes mellitus, type 2': 'type 2 diabetes',
+  'diabetes mellitus, type 1': 'type 1 diabetes',
+  'diabetes mellitus': 'diabetes',
+  'hypothyroidism': 'underactive thyroid',
+  'hyperthyroidism': 'overactive thyroid',
+  'hypercholesterolemia': 'high cholesterol',
+  'hyperlipoproteinemias': 'high cholesterol',
+  'dyslipidemia': 'abnormal cholesterol levels',
+  'obesity': 'overweight',
+  
+  // Respiratory
+  'asthma': 'asthma',
+  'chronic obstructive pulmonary disease': 'COPD',
+  'bronchospasm': 'breathing difficulty',
+  'dyspnea': 'shortness of breath',
+  
+  // Gastrointestinal
+  'gastroesophageal reflux': 'acid reflux (GERD)',
+  'peptic ulcer': 'stomach ulcer',
+  'constipation': 'constipation',
+  'diarrhea': 'diarrhea',
+  
+  // Mental Health
+  'depressive disorder': 'depression',
+  'anxiety disorders': 'anxiety',
+  'bipolar disorder': 'bipolar disorder',
+  
+  // Musculoskeletal
+  'arthritis, rheumatoid': 'rheumatoid arthritis',
+  'osteoarthritis': 'arthritis',
+  'osteoporosis': 'weak bones',
+  
+  // Neurological
+  'epilepsy': 'seizures',
+  'migraine': 'migraines',
+  'neuropathy': 'nerve pain',
+  
+  // Renal
+  'diabetic nephropathies': 'diabetic kidney disease',
+  'chronic kidney disease': 'kidney disease',
+  
+  // Hematological
+  'thromboembolism': 'blood clots',
+  'deep vein thrombosis': 'blood clot in leg (DVT)',
+  'pulmonary embolism': 'blood clot in lung'
+};
+
+/**
+ * Translate medical terminology to patient-friendly language.
+ * Returns translated term if found, otherwise original term.
+ */
+function translateMedicalTerm(term: string): string {
+  const lowerTerm = term.toLowerCase().trim();
+  
+  // Check for exact match
+  if (MEDICAL_TERM_TRANSLATIONS[lowerTerm]) {
+    return MEDICAL_TERM_TRANSLATIONS[lowerTerm];
+  }
+  
+  // Check for partial match
+  for (const [medical, friendly] of Object.entries(MEDICAL_TERM_TRANSLATIONS)) {
+    if (lowerTerm.includes(medical)) {
+      return friendly;
+    }
+  }
+  
+  // Return original if no translation found
+  return term;
+}
 
 /**
  * Filter out side effects and adverse reactions from therapeutic uses.
  * Returns true if the use is valid (not a side effect).
+ * ENHANCED: Now also filters alarming and inappropriate patient-facing terms.
  */
 function isValidTherapeuticUse(use: string): boolean {
   const lowerUse = use.toLowerCase();
@@ -270,7 +385,8 @@ export async function getTherapeuticUses(rxcui: string): Promise<string[]> {
     const uses = drugInfoList
       .filter((item: any) => item.rxclassMinConceptItem?.classType === 'DISEASE')
       .map((item: any) => item.rxclassMinConceptItem.className as string)
-      .filter(isValidTherapeuticUse); // Filter out side effects
+      .filter(isValidTherapeuticUse) // Filter out side effects and inappropriate terms
+      .map(translateMedicalTerm); // Translate to patient-friendly language
 
     // Deduplicate (case-insensitive)
     const useMap = new Map<string, string>();
