@@ -49,7 +49,9 @@ next-env.d.ts
 DEPLOYMENT-NOTES.md
 /docs/DEPLOYMENT-NOTES.md
 
-# Session notes (work in progress, not for public repo)
+# Session notes and agent briefings (work in progress, not for public repo)
+/docs/NEXT-AGENT-BRIEFING.md
+/docs/*-BRIEFING.md
 /docs/SESSION-*.md
 
 # Copilot internal instructions (private)
