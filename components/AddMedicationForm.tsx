@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { Medication, Allergy } from '@/types';
-import { searchDrugs, parseDosage, parseForm, getSuggestedQuantity, type DrugSearchResult } from '@/lib/rxnav';
+import { searchDrugs, parseDosage, parseForm, getSuggestedQuantity, getSpellingSuggestions, type DrugSearchResult } from '@/lib/rxnav';
 import { isLikelyMaintenanceMed, getMaintenanceReason } from '@/lib/maintenance';
 import { checkAllergyConflictsAsync, getAllergies } from '@/lib/allergies';
 import { checkContraindications, type ContraindicationWarning } from '@/lib/contraindications';
 import { getHealthConditions } from '@/lib/health-conditions';
+import PopularMedications from './PopularMedications';
 
 interface AddMedicationFormProps {
   onSubmit: (data: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -35,6 +36,8 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
   const [selectedRxcui, setSelectedRxcui] = useState<string | undefined>(initialData?.rxcui);
   const [maintenanceReason, setMaintenanceReason] = useState<string | null>(null);
   const [justSelected, setJustSelected] = useState(false);
+  const [spellingSuggestions, setSpellingSuggestions] = useState<string[]>([]);
+  const [showPopular, setShowPopular] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Allergy warning state
@@ -63,10 +66,20 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
         // Results are already sorted by rxnav.ts: Form → Generic/Brand → Alphabetical
         setSearchResults(results);
         setShowDropdown(results.length > 0);
+        
+        // Check for spelling suggestions if no results
+        if (results.length === 0 && name.length >= 3) {
+          const suggestions = await getSpellingSuggestions(name);
+          setSpellingSuggestions(suggestions);
+        } else {
+          setSpellingSuggestions([]);
+        }
+        
         setIsLoading(false);
       } else {
         setSearchResults([]);
         setShowDropdown(false);
+        setSpellingSuggestions([]);
       }
     }, 150); // Reduced from 300ms to 150ms for faster response
 
@@ -276,10 +289,12 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
               setSelectedRxcui(undefined); // Clear verification if user types manually
               setJustSelected(false); // User is typing again, allow dropdown to show
             }}
-            placeholder="e.g., Lisinopril"
+            placeholder="Search medications (e.g., Lisinopril, Lipitor, Metformin)"
             className="w-full px-5 py-4 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             required
             autoComplete="off"
+            onFocus={() => setShowPopular(name.length === 0)}
+            onBlur={() => setTimeout(() => setShowPopular(false), 200)}
           />
           
           {/* Loading indicator */}
@@ -292,26 +307,74 @@ export default function AddMedicationForm({ onSubmit, onCancel, initialData, isE
             </div>
           )}
           
+          {/* Popular Medications */}
+          {showPopular && !isEditing && (
+            <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-300 rounded-xl shadow-xl p-4">
+              <PopularMedications
+                onSelect={async (med) => {
+                  setShowPopular(false);
+                  // Search for the selected popular medication to get full details
+                  const results = await searchDrugs(med.name);
+                  if (results.length > 0) {
+                    handleSelectDrug(results[0]);
+                  }
+                }}
+              />
+            </div>
+          )}
+          
           {/* Autocomplete Dropdown */}
           {showDropdown && searchResults.length > 0 && (
-            <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-300 rounded-xl shadow-xl max-h-64 overflow-y-auto">
-              {searchResults.map((drug) => (
+            <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-300 rounded-xl shadow-xl max-h-80 overflow-y-auto">
+              {searchResults.slice(0, 5).map((drug) => (
                 <button
                   key={drug.rxcui}
                   type="button"
                   onClick={() => handleSelectDrug(drug)}
-                  className="w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                  className="w-full px-5 py-4 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 group"
                 >
-                  <div className="font-semibold text-gray-900">{drug.displayName || drug.name}</div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {drug.tty === 'SCD' && <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1" />}
-                    {drug.tty === 'SCD' && 'Generic'}
-                    {drug.tty === 'SBD' && <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1" />}
-                    {drug.tty === 'SBD' && 'Brand'}
-                    {drug.form && ` • ${drug.form}`}
+                  <div className={`text-lg mb-1 group-hover:text-blue-700 transition-colors ${
+                    drug.tty === 'SBD' ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'
+                  }`}>
+                    {drug.displayName || drug.name}
+                  </div>
+                  <div className="text-sm text-gray-500 flex items-center gap-2">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      drug.tty === 'SCD'
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : 'bg-green-100 text-green-700 border border-green-200'
+                    }`}>
+                      {drug.tty === 'SCD' ? 'Generic' : 'Brand'}
+                    </span>
+                    {drug.form && <span className="text-gray-600">{drug.form}</span>}
                   </div>
                 </button>
               ))}
+            </div>
+          )}
+          
+          {/* Spelling Suggestions */}
+          {!showDropdown && spellingSuggestions.length > 0 && name.length >= 3 && (
+            <div className="absolute z-10 w-full mt-2 bg-white border-2 border-amber-300 rounded-xl shadow-xl p-4">
+              <p className="text-sm font-semibold text-gray-700 mb-2">Did you mean?</p>
+              <div className="space-y-1">
+                {spellingSuggestions.slice(0, 3).map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setName(suggestion);
+                      setSpellingSuggestions([]);
+                    }}
+                    className="w-full px-3 py-2 text-left text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-3">
+                Try searching for brand names (Lipitor, Advil) or generic names (atorvastatin, ibuprofen)
+              </p>
             </div>
           )}
         </div>
