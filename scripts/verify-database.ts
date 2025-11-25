@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()
 
 async function verifyDatabase() {
-  console.log('🔍 Verifying ClariMed Database Setup...\n')
+  console.log('[INFO] Verifying ClariMed Database Setup\n')
 
   const requiredTables = [
     'user_profiles',
@@ -35,39 +35,39 @@ async function verifyDatabase() {
         .limit(1)
 
       if (error) {
-        console.error(`❌ Table '${table}' error:`, error.message)
+        console.error(`[ERROR] Table '${table}' error:`, error.message)
         allGood = false
       } else {
-        console.log(`✅ Table '${table}' exists`)
+        console.log(`[SUCCESS] Table '${table}' exists`)
         
         // Check if we can insert/update (tests RLS policies)
-        console.log(`   ℹ️  RLS policies are configured (requires authentication to test)`)
+        console.log(`[INFO] RLS policies are configured (requires authentication to test)`)
       }
     } catch (err) {
-      console.error(`❌ Failed to check table '${table}':`, err)
+      console.error(`[ERROR] Failed to check table '${table}':`, err)
       allGood = false
     }
   }
 
-  console.log('\n📊 Summary:')
+  console.log('\n[SUMMARY]')
   if (allGood) {
-    console.log('✅ All required tables exist!')
-    console.log('✅ Database is ready for use')
-    console.log('\n💡 Next steps:')
-    console.log('   1. Test signup flow in the browser')
-    console.log('   2. Verify email verification works')
-    console.log('   3. Test login flow')
+    console.log('[SUCCESS] All required tables exist')
+    console.log('[SUCCESS] Database is ready for use')
+    console.log('\nNext steps:')
+    console.log('  1. Test signup flow in the browser')
+    console.log('  2. Verify email verification works')
+    console.log('  3. Test login flow')
   } else {
-    console.log('⚠️  Some issues detected')
-    console.log('\n🔧 To fix:')
-    console.log('   1. Go to Supabase Dashboard → SQL Editor')
-    console.log('   2. Run: lib/supabase/migrations/001_initial_schema.sql')
-    console.log('   3. Run: lib/supabase/migrations/002_add_name_phone_fields.sql')
-    console.log('   4. Run this script again')
+    console.log('[WARNING] Some issues detected')
+    console.log('\nTo fix:')
+    console.log('  1. Go to Supabase Dashboard → SQL Editor')
+    console.log('  2. Run: lib/supabase/migrations/001_initial_schema.sql')
+    console.log('  3. Run: lib/supabase/migrations/002_add_name_phone_fields.sql')
+    console.log('  4. Run this script again')
   }
 
-  console.log('\n📝 Connection Status:')
-  console.log('   Supabase client initialized successfully')
+  console.log('\n[INFO] Connection Status:')
+  console.log('  Supabase client initialized successfully')
 }
 
 verifyDatabase().catch(console.error)

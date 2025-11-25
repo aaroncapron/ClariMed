@@ -36,8 +36,8 @@ async function deleteWithRetry(filePath, retries = 0) {
         await sleep(delay);
         return deleteWithRetry(filePath, retries + 1);
       } else {
-        console.warn(`⚠️  Could not delete locked file: ${filePath}`);
-        console.warn('   This is safe to ignore. Close VS Code/editors and run again if needed.');
+        console.warn(`[WARNING] Could not delete locked file: ${filePath}`);
+        console.warn('This is safe to ignore. Close VS Code/editors and run again if needed.');
         return;
       }
     }
@@ -48,17 +48,17 @@ async function deleteWithRetry(filePath, retries = 0) {
 async function cleanBuild() {
   const nextDir = path.join(process.cwd(), '.next');
   
-  console.log('🧹 Cleaning .next directory...');
+  console.log('[INFO] Cleaning .next directory...');
   
   try {
     await deleteWithRetry(nextDir);
-    console.log('✅ Clean complete!');
+    console.log('[SUCCESS] Clean complete');
   } catch (error) {
-    console.error('❌ Clean failed:', error.message);
-    console.log('\n💡 If files are locked:');
-    console.log('   1. Close VS Code and any editors');
-    console.log('   2. Stop all Node processes (Ctrl+C in terminals)');
-    console.log('   3. Delete .next folder manually in File Explorer');
+    console.error('[ERROR] Clean failed:', error.message);
+    console.log('\nIf files are locked:');
+    console.log('  1. Close VS Code and any editors');
+    console.log('  2. Stop all Node processes (Ctrl+C in terminals)');
+    console.log('  3. Delete .next folder manually in File Explorer');
     process.exit(1);
   }
 }
