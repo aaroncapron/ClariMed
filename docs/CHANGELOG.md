@@ -7,7 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - Surgical Refactor (In Progress)
+## [Unreleased] - Drug Information API Integration
+
+### CRITICAL FIXES
+- **[FDA Compliance]** Removed auto-populated dosing directions - Eliminated `getSuggestedDirections()` function that was pre-filling medication directions field with dosing instructions, which constitutes medical advice and violates FDA regulations. Users must now enter their own prescribed directions from healthcare providers.
+- **[Patient Safety]** Fixed dangerous therapeutic use display - Angioedema (a serious side effect) was incorrectly appearing as a therapeutic indication for Lisinopril and other ACE inhibitors. Implemented comprehensive filtering system to prevent side effects from displaying as treatment indications.
+
+### Fixed
+- **RxClass API Integration** - Fixed critical bug where API response parsing expected `rxclassMinConceptList` but API returns `rxclassDrugInfoList` format
+- **Ingredient RXCUI Resolution** - Added automatic resolution from product RXCUIs to ingredient RXCUIs, as RxClass data is only available for ingredients
+- **Drug Information Cascade** - Xiidra and other medications now display correct drug class and therapeutic uses (previously showed "Contact your prescriber")
+- **API Source Fallback Chain** - Enhanced with MEDRT and FDASPL sources when DAILYMED has no data
+
+### Added
+- **Comprehensive Side Effect Filter** - Blacklist of 50+ terms prevents display of hypersensitivity reactions, organ toxicity, blood disorders, metabolic adverse effects, neoplasms, enzyme deficiencies, and contraindications as therapeutic uses
+- **Deduplication Logic** - Case-insensitive deduplication of therapeutic uses from API responses
+- **Enhanced Test Coverage** - Added 3 new unit tests specifically for filtering validation (angioedema, cholestasis, hypersensitivity, deduplication)
+- **Professional Documentation** - Removed emojis from all scripts and documentation, replaced with professional log level indicators and status markers
+
+### Changed
+- Therapeutic uses now limited to top 3 most common indications per medication
+- Updated 17 existing RxClass unit tests to use correct API response format
+- Cleaned up diagnostic test scripts used during debugging
+
+### Technical Details
+- All 173 tests passing (170 existing + 3 new filtering tests)
+- Production build successful with 0 errors
+- Enhanced `lib/rxclass.ts` with `getIngredientRxcui()`, `extractClassInfo()`, `isValidTherapeuticUse()` helpers
+- Updated `components/AddMedicationForm.tsx` to remove medical advice functionality
+
+---
+
+## [0.9.0] - 2025-11-04 - Surgical Refactor
 
 ### BREAKING CHANGES
 - **Removed localStorage support** - Application now requires authentication
