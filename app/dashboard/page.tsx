@@ -9,6 +9,7 @@ import type { Medication } from '@/types';
 import { getMedications, addMedication, updateMedication, deleteMedication } from '@/lib/storage';
 import MedicationList from '@/components/MedicationList';
 import AddMedicationForm from '@/components/AddMedicationForm';
+import EditMedicationModal from '@/components/EditMedicationModal';
 import FloatingViewToggle from '@/components/FloatingViewToggle';
 import InteractionSummary from '@/components/InteractionSummary';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -69,7 +71,25 @@ export default function DashboardPage() {
 
   const handleEdit = (med: Medication) => {
     setEditingMed(med);
-    setShowForm(true);
+    setIsEditModalOpen(true);
+  };
+
+  const handleModalSave = async (updatedMedication: Medication) => {
+    try {
+      await updateMedication(updatedMedication.id, updatedMedication);
+      const meds = await getMedications();
+      setMedications(meds);
+      setIsEditModalOpen(false);
+      setEditingMed(null);
+    } catch (error) {
+      console.error('Error updating medication:', error);
+      alert('Failed to update medication. Please try again.');
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsEditModalOpen(false);
+    setEditingMed(null);
   };
 
   const handleCancel = () => {
@@ -242,6 +262,16 @@ export default function DashboardPage() {
       )}
         </div>
       </main>
+
+      {/* Edit Medication Modal */}
+      {editingMed && (
+        <EditMedicationModal
+          medication={editingMed}
+          isOpen={isEditModalOpen}
+          onClose={handleModalClose}
+          onSave={handleModalSave}
+        />
+      )}
 
       {/* Floating View Mode Toggle */}
       <FloatingViewToggle />
