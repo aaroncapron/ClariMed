@@ -222,19 +222,29 @@ Try searching for:
 
 ## Implementation Roadmap
 
-### Phase 1: Quick Wins (1-2 days)
-- [ ] Add popular medications display
-- [ ] Enhance placeholder text
-- [ ] Improve dropdown visual hierarchy
-- [ ] Add spelling suggestions on no results
+### Phase 1: Quick Wins (1-2 days) ✅ COMPLETE
+- [x] Add popular medications display
+- [x] Enhance placeholder text
+- [x] Improve dropdown visual hierarchy
+- [x] Add spelling suggestions on no results
+- [x] Build EditMedicationModal with GoodRx-style 4-dropdown structure
+- [x] Integrate modal with dashboard
+- [x] Add pen injector quantity support (cartons)
 
-### Phase 2: User Experience (3-5 days)
+### Phase 2: Data Quality & Safety (CURRENT) 🚧
+- [x] Filter inappropriate clinical terms from Common Use
+- [x] Add medical term translation layer
+- [x] Limit to top 3 therapeutic uses
+- [ ] Add manual overrides for top 200 medications
+- [ ] Test filtered data accuracy with 50+ common drugs
+
+### Phase 3: User Experience (Next)
 - [ ] Add recent searches (localStorage)
 - [ ] Add therapeutic category badges
 - [ ] Implement "no results" state
 - [ ] Keyboard navigation
 
-### Phase 3: Advanced Features (1-2 weeks)
+### Phase 4: Advanced Features (Future)
 - [ ] Search analytics (optional)
 - [ ] Advanced filtering
 - [ ] Performance optimizations (caching)
@@ -283,6 +293,64 @@ Try searching for:
 - Users report search feels "faster"
 - Fewer user errors (wrong medication selected)
 - Better brand/generic recognition
+
+---
+
+## Patient-Friendly Data Filtering (Phase 2)
+
+**Implemented**: November 24, 2025
+
+### Problem
+Medical databases (RxClass, DailyMed) use **clinical ICD-10 terminology** unsuitable for patients:
+- **Warfarin**: Showed "abortion, threatened" (medical term for miscarriage risk)
+- **Estradiol**: Showed "radioactive diagnostic agent" (wrong classification)
+- **Metformin**: Showed "renal insufficiency" (actually contraindicated)
+
+### Solution: 3-Layer Filtering System
+
+#### Layer 1: Expanded Blocklist (`SIDE_EFFECT_TERMS`)
+Added to existing side effect filter:
+```typescript
+// Alarming clinical terms
+'threatened', 'insufficiency', 'failure', 'radioactive', 'diagnostic'
+
+// Pregnancy-related alarming terms  
+'abortion', 'fetal death', 'stillbirth'
+
+// Rare/confusing conditions
+'aneurysm', 'coagulopathy', 'alcoholism'
+```
+
+#### Layer 2: Medical Term Translation
+Maps clinical terms to patient-friendly language:
+```typescript
+'diabetes mellitus, type 2' → 'type 2 diabetes'
+'hypercholesterolemia' → 'high cholesterol'
+'hypertension' → 'high blood pressure'
+'atrial fibrillation' → 'irregular heartbeat (AFib)'
+'diabetic nephropathies' → 'diabetic kidney disease'
+```
+
+#### Layer 3: Limit to Top 3 Uses
+Reduces information overload by showing only most common conditions.
+
+### Results
+**Before:**
+- Warfarin: "Treat abortion, threatened, alcoholism, aneurysm"
+- Metformin: "Treat diabetes mellitus, type 2, renal insufficiency"
+
+**After:**
+- Warfarin: Should show "Prevent blood clots" (after manual override added)
+- Metformin: "Treat type 2 diabetes"
+
+### Implementation Files
+- `lib/rxclass.ts`: Filtering logic, translations, term blocklist
+- `lib/drug-info.ts`: 3-tier cascade system orchestration
+
+### Next Steps
+- Add manual overrides for top 200 drugs (warfarin, insulin, etc.)
+- Test accuracy with 50+ common medications
+- Validate no legitimate uses are filtered out
 
 ---
 
