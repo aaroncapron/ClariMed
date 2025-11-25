@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - Drug Information API Integration
+## [0.9.1] - 2025-11-24 - Drug Information API Integration & Safety Fixes
 
 ### CRITICAL FIXES
 - **[FDA Compliance]** Removed auto-populated dosing directions - Eliminated `getSuggestedDirections()` function that was pre-filling medication directions field with dosing instructions, which constitutes medical advice and violates FDA regulations. Users must now enter their own prescribed directions from healthcare providers.
