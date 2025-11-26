@@ -295,14 +295,18 @@ export default function ClinicalMedicationCard({
 
           {/* Prescription Details */}
           <div className="space-y-3 text-gray-700">
-            <p className="flex items-center gap-2 text-lg">
-              <span className="font-semibold text-blue-700">Quantity Dispensed:</span> 
-              <span>{med.quantity}</span>
-            </p>
-            <p className="flex items-start gap-2 text-lg">
-              <span className="font-semibold text-blue-700 flex-shrink-0">Directions:</span> 
-              <span className="bg-gray-50 px-3 py-1 rounded border border-gray-200">{med.frequency}</span>
-            </p>
+            {med.quantity && (
+              <p className="flex items-center gap-2 text-lg">
+                <span className="font-semibold text-blue-700">Quantity Dispensed:</span> 
+                <span>{med.quantity}</span>
+              </p>
+            )}
+            {med.frequency && (
+              <p className="flex items-start gap-2 text-lg">
+                <span className="font-semibold text-blue-700 flex-shrink-0">Directions:</span> 
+                <span className="bg-gray-50 px-3 py-1 rounded border border-gray-200">{med.frequency}</span>
+              </p>
+            )}
             {med.refills_remaining !== undefined && (
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-blue-700">Refills:</span>
