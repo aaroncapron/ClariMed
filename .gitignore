@@ -54,3 +54,12 @@ DEPLOYMENT-NOTES.md
 
 # Copilot internal instructions (private)
 .copilot-instructions.md
+
+# Manual overrides file (private data)
+/lib/manual-overrides.ts
+
+# Local VSCode settings
+.vscode/settings.json
+
+rrf/
+prescribe/rrf/
